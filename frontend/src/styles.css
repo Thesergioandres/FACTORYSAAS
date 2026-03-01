@@ -4,6 +4,8 @@
 	:root {
 		color-scheme: dark;
 		--accent: 245 158 11;
+		--tenant-primary: 245 158 11;
+		--tenant-secondary: 253 230 138;
 		--surface: 15 15 18;
 		--panel: 24 24 28;
 	}
@@ -54,6 +56,7 @@
 
 	.app-chip {
 		@apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-zinc-200;
+		color: rgb(var(--tenant-secondary));
 	}
 
 	.app-navlink {
@@ -61,11 +64,23 @@
 	}
 
 	.btn-primary {
-		@apply inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-black transition hover:bg-amber-400;
+		@apply inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-black transition;
+		background-color: rgb(var(--tenant-primary));
+	}
+
+	.btn-primary:hover {
+		background-color: rgb(var(--tenant-secondary));
 	}
 
 	.btn-secondary {
-		@apply inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-100/10 px-5 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-100/20;
+		@apply inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition;
+		border-color: rgba(var(--tenant-primary), 0.3);
+		color: rgb(var(--tenant-secondary));
+		background-color: rgba(var(--tenant-primary), 0.1);
+	}
+
+	.btn-secondary:hover {
+		background-color: rgba(var(--tenant-primary), 0.2);
 	}
 
 	.btn-ghost {

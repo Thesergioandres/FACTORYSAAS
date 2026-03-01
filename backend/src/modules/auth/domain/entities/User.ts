@@ -9,6 +9,7 @@ type UserProps = {
   whatsappConsent: boolean;
   passwordHash: string;
   approved: boolean;
+  tenantId?: string | null;
 };
 
 export class User {
@@ -20,8 +21,9 @@ export class User {
   whatsappConsent: boolean;
   passwordHash: string;
   approved: boolean;
+  tenantId: string | null;
 
-  constructor({ id, name, email, phone, role, whatsappConsent, passwordHash, approved }: UserProps) {
+  constructor({ id, name, email, phone, role, whatsappConsent, passwordHash, approved, tenantId }: UserProps) {
     this.id = id;
     this.name = name;
     this.email = email;
@@ -30,5 +32,6 @@ export class User {
     this.whatsappConsent = whatsappConsent;
     this.passwordHash = passwordHash;
     this.approved = approved;
+    this.tenantId = tenantId ?? null;
   }
 }

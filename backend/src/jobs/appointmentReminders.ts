@@ -10,6 +10,7 @@ import { NotificationsService } from '../modules/notifications/application/Notif
 import { BullmqWhatsAppProvider } from '../modules/notifications/infrastructure/providers/BullmqWhatsAppProvider';
 import { ConsoleWhatsAppProvider } from '../modules/notifications/infrastructure/providers/ConsoleWhatsAppProvider';
 import { InMemoryTenantsRepository } from '../modules/tenants/infrastructure/persistence/InMemoryTenantsRepository';
+import { MongoTenantsRepository } from '../modules/tenants/infrastructure/persistence/MongoTenantsRepository';
 
 const connection = redis.duplicate();
 export const reminderQueue = new Queue('reminder-jobs', { connection });
@@ -17,7 +18,7 @@ export const reminderQueue = new Queue('reminder-jobs', { connection });
 const provider = env.whatsappProvider === 'bullmq'
   ? new BullmqWhatsAppProvider()
   : new ConsoleWhatsAppProvider();
-const tenantsRepository = new InMemoryTenantsRepository();
+const tenantsRepository = env.useMongo ? new MongoTenantsRepository() : new InMemoryTenantsRepository();
 const notificationsService = new NotificationsService(provider, tenantsRepository);
 
 const JOB_NAME = 'scan-reminders';

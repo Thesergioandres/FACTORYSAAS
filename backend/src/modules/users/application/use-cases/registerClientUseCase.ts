@@ -17,13 +17,15 @@ export class RegisterClientUseCase {
     email,
     phone,
     password,
-    whatsappConsent = false
+    whatsappConsent = false,
+    tenantId
   }: {
     name?: string;
     email?: string;
     phone?: string;
     password?: string;
     whatsappConsent?: boolean;
+    tenantId?: string | null;
   }): Promise<{ user: Awaited<ReturnType<UsersRepository['create']>> } | { error: string; statusCode: number }> {
     if (!name || !email || !phone || !password) {
       return this.error('name, email, phone y password son requeridos', 400);
@@ -45,7 +47,8 @@ export class RegisterClientUseCase {
       password,
       role: UserRole.CLIENT,
       whatsappConsent,
-      approved: false
+      approved: false,
+      tenantId: tenantId ?? null
     });
 
     return { user };

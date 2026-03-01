@@ -6,6 +6,10 @@ import type { UserRecord } from '../../domain/entities/User';
 import type { UserRole } from '../../../../shared/domain/roles';
 
 export class InMemoryUsersRepository implements UsersRepository {
+  async listAll(): Promise<UserRecord[]> {
+    return database.users.filter((user) => user.active) as unknown as UserRecord[];
+  }
+
   async findById(id: string): Promise<UserRecord | null> {
     return database.users.find((user) => user.id === id && user.active) || null;
   }

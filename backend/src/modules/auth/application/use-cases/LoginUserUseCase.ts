@@ -22,6 +22,7 @@ type LoginSuccess = {
     phone: string;
     whatsappConsent: boolean;
     approved: boolean;
+    tenantId?: string | null;
   };
 };
 
@@ -49,7 +50,13 @@ export class LoginUserUseCase {
       return { error: 'Credenciales inválidas', statusCode: 401 };
     }
 
-    const token = this.deps.tokenService.sign({ sub: user.id, email: user.email, role: user.role, approved: user.approved });
+    const token = this.deps.tokenService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      approved: user.approved,
+      tenantId: user.tenantId ?? undefined
+    });
     return {
       token,
       user: {
@@ -59,7 +66,8 @@ export class LoginUserUseCase {
         role: user.role,
         phone: user.phone,
         whatsappConsent: user.whatsappConsent,
-        approved: user.approved
+        approved: user.approved,
+        tenantId: user.tenantId ?? null
       }
     };
   }

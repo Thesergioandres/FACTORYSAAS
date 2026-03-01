@@ -32,6 +32,7 @@ export interface UsersRepository {
   findById(id: string): Promise<UserRecord | null>;
   findByEmail(email: string): Promise<UserRecord | null>;
   findByResetToken(tokenHash: string): Promise<UserRecord | null>;
+  listAll?(): Promise<UserRecord[]>;
   list(tenantId: string, role?: UserRole | string): Promise<UserRecord[]>;
   create(input: CreateUserInput): Promise<UserRecord>;
   update(id: string, input: UpdateUserInput): Promise<UserRecord | null>;

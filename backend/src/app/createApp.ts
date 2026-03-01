@@ -9,12 +9,20 @@ import { database } from '../shared/infrastructure/memory/database';
 import { authenticateJwt } from '../shared/interfaces/http/middlewares/authenticateJwt';
 import { requireRoles } from '../shared/interfaces/http/middlewares/requireRoles';
 import { requireApproved } from '../shared/interfaces/http/middlewares/requireApproved';
+import { createPlanGatekeeper } from '../shared/interfaces/http/middlewares/planGatekeeper';
 import { createAuthModule } from '../modules/auth/module';
 import { createUsersModule } from '../modules/users/module';
 import { createServicesModule } from '../modules/services/module';
 import { createBarbersModule } from '../modules/barbers/module';
-import { InMemoryTenantsRepository } from '../modules/tenants/infrastructure/persistence/InMemoryTenantsRepository';
+import { InMemoryUsersRepository } from '../modules/users/infrastructure/persistence/InMemoryUsersRepository';
+import { MongoUsersRepository } from '../modules/users/infrastructure/persistence/MongoUsersRepository';
 import { createTenantsRoutes } from '../modules/tenants/interfaces/http/tenantsRoutes';
+import { createTenantsRepository } from '../modules/tenants/module';
+import { FactoryService } from '../modules/tenants/application/FactoryService';
+import { createPlansModule } from '../modules/plans/module';
+import { createBranchesModule } from '../modules/branches/module';
+import { InMemoryBranchesRepository } from '../modules/branches/infrastructure/persistence/InMemoryBranchesRepository';
+import { MongoBranchesRepository } from '../modules/branches/infrastructure/persistence/MongoBranchesRepository';
 import { createNotificationsModule } from '../modules/notifications/module';
 import { createAppointmentsModule } from '../modules/appointments/module';
 import { createReportsModule } from '../modules/reports/module';
@@ -45,11 +53,21 @@ export function createApp({
 
   const authMiddleware = authenticateJwt({ jwtSecret: env.jwtSecret });
 
-  const { usersRoutes, usersRepository } = createUsersModule({
+  const tenantsRepository = createTenantsRepository({ useMongo: persistence.useMongo });
+
+  const { plansRoutes, plansRepository } = createPlansModule({
     useMongo: persistence.useMongo,
     authenticateJwt: authMiddleware,
     requireRoles
   });
+
+  const branchesRepository = persistence.useMongo
+    ? new MongoBranchesRepository()
+    : new InMemoryBranchesRepository();
+
+  const usersRepository = persistence.useMongo
+    ? new MongoUsersRepository()
+    : new InMemoryUsersRepository();
   const { servicesRoutes, servicesRepository } = createServicesModule({
     useMongo: persistence.useMongo,
     authenticateJwt: authMiddleware,
@@ -61,7 +79,40 @@ export function createApp({
     requireApproved: requireApproved(),
     requireRoles
   });
-  const tenantsRepository = new InMemoryTenantsRepository();
+  const planGatekeeper = createPlanGatekeeper({
+    tenantsRepository,
+    plansRepository,
+    usersRepository,
+    branchesRepository
+  });
+
+  const { branchesRoutes } = createBranchesModule({
+    branchesRepository,
+    planGatekeeper,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
+  const factoryService = new FactoryService({
+    tenantsRepository,
+    plansRepository,
+    branchesRepository,
+    usersRepository,
+    defaultConfig: {
+      ...database.appConfig,
+      bufferTimeMinutes: 10,
+      requirePaymentForNoShows: false,
+      maxNoShowsBeforePayment: 3
+    }
+  });
+
+  const { usersRoutes: usersRoutesWithFactory } = createUsersModule({
+    usersRepository,
+    factoryService,
+    planGatekeeper,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
 
   const { notificationsService, notificationsRoutes } = createNotificationsModule({
     env,
@@ -90,7 +141,7 @@ export function createApp({
   });
   const { authRoutes } = createAuthModule({ env, usersRepository });
 
-  const tenantsRoutes = createTenantsRoutes({ 
+  const tenantsRoutes = createTenantsRoutes({
     tenantsRepository,
     authenticateJwt: authMiddleware,
     requireRoles
@@ -143,7 +194,9 @@ export function createApp({
   app.use('/api', healthRouter);
   app.use('/api/tenants', tenantsRoutes);
   app.use('/api/auth', authRoutes);
-  app.use('/api/users', usersRoutes);
+  app.use('/api/users', usersRoutesWithFactory);
+  app.use('/api/plans', plansRoutes);
+  app.use('/api/branches', branchesRoutes);
   app.use('/api/services', servicesRoutes);
   app.use('/api/barbers', barbersRoutes);
   app.use('/api/appointments', appointmentsRoutes);

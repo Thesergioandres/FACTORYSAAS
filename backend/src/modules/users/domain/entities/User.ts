@@ -12,7 +12,7 @@ type UserProps = {
   approved: boolean;
   resetTokenHash?: string | null;
   resetTokenExpiresAt?: string | null;
-  tenantId?: string | null;
+  tenantId: string | null;
   branchIds?: string[];
   createdAt: string;
 };
@@ -47,7 +47,7 @@ export class User {
     this.approved = props.approved;
     this.resetTokenHash = props.resetTokenHash ?? null;
     this.resetTokenExpiresAt = props.resetTokenExpiresAt ?? null;
-    this.tenantId = props.tenantId ?? null;
+    this.tenantId = props.tenantId;
     this.branchIds = props.branchIds ?? [];
     this.createdAt = props.createdAt;
   }

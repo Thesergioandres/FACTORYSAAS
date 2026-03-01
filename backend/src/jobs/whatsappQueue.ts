@@ -7,6 +7,7 @@ import { WhatsAppLogModel } from '../shared/infrastructure/mongoose/models/Whats
 
 type WhatsAppJob = {
   appointmentId?: string | null;
+  tenantId: string;
   event: string;
   roleTarget: string;
   phone: string;
@@ -23,6 +24,7 @@ function shouldSkipByQuietHours(now: Date) {
 async function persistLog(log: {
   id: string;
   appointmentId?: string | null;
+  tenantId: string;
   event: string;
   roleTarget: string;
   phone: string;
@@ -35,6 +37,7 @@ async function persistLog(log: {
 
   if (mongoose.connection.readyState === 1) {
     await WhatsAppLogModel.create({
+      tenantId: log.tenantId,
       appointmentId: log.appointmentId,
       event: log.event,
       roleTarget: log.roleTarget,
@@ -56,6 +59,7 @@ const worker = new Worker<WhatsAppJob>(
       await persistLog({
         id: `${Date.now()}-${Math.random()}`,
         appointmentId: payload.appointmentId || null,
+        tenantId: payload.tenantId,
         event: payload.event,
         roleTarget: payload.roleTarget,
         phone: payload.phone,
@@ -70,6 +74,7 @@ const worker = new Worker<WhatsAppJob>(
     await persistLog({
       id: `${Date.now()}-${Math.random()}`,
       appointmentId: payload.appointmentId || null,
+      tenantId: payload.tenantId,
       event: payload.event,
       roleTarget: payload.roleTarget,
       phone: payload.phone,
@@ -87,6 +92,7 @@ worker.on('failed', (job, err) => {
   persistLog({
     id: `${Date.now()}-${Math.random()}`,
     appointmentId: payload.appointmentId || null,
+    tenantId: payload.tenantId || 'unknown',
     event: payload.event || 'UNKNOWN',
     roleTarget: payload.roleTarget || 'UNKNOWN',
     phone: payload.phone || '',

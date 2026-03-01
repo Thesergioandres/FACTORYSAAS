@@ -5,6 +5,7 @@ export type AuthTokenPayload = {
   email: string;
   role: UserRole;
   approved: boolean;
+  tenantId?: string;
 };
 
 export interface TokenService {

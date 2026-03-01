@@ -2,6 +2,8 @@ import { Router, type Request, type Response } from 'express';
 import bcrypt from 'bcryptjs';
 import type { RegisterClientUseCase } from '../../application/use-cases/registerClientUseCase';
 import type { CreateUserByAdminUseCase } from '../../application/use-cases/createUserByAdminUseCase';
+import type { RegisterTenantAdminUseCase } from '../../application/use-cases/registerTenantAdminUseCase';
+import type { createPlanGatekeeper } from '../../../../shared/interfaces/http/middlewares/planGatekeeper';
 import type { UsersRepository } from '../../application/ports/UsersRepository';
 import type { authenticateJwt } from '../../../../shared/interfaces/http/middlewares/authenticateJwt';
 import type { requireRoles } from '../../../../shared/interfaces/http/middlewares/requireRoles';
@@ -18,17 +20,22 @@ function isE164(phone: string) {
 export function createUsersRoutes({
   registerClientUseCase,
   createUserByAdminUseCase,
+  registerTenantAdminUseCase,
   usersRepository,
+  planGatekeeper,
   authenticateJwt: authMiddleware,
   requireRoles: requireRolesMiddleware
 }: {
   registerClientUseCase: RegisterClientUseCase;
   createUserByAdminUseCase: CreateUserByAdminUseCase;
+  registerTenantAdminUseCase?: RegisterTenantAdminUseCase;
   usersRepository: UsersRepository;
+  planGatekeeper?: ReturnType<typeof createPlanGatekeeper>;
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireRoles: typeof requireRoles;
 }) {
   const router = Router();
+  const requireBarberSlot = planGatekeeper?.requireBarberSlot || ((_req: Request, _res: Response, next) => next());
 
   router.get('/public/barbers', async (_req: Request, res: Response) => {
     const barbers = await usersRepository.list('BARBER');
@@ -54,9 +61,9 @@ export function createUsersRoutes({
 
   router.get('/pending', authMiddleware, requireRolesMiddleware('GOD'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
-
-    const users = await usersRepository.list(tenantId);
+    const users = tenantId
+      ? await usersRepository.list(tenantId)
+      : await usersRepository.listAll?.() || [];
     const pending = users.filter((user) => user.approved === false);
     res.json(pending.map(sanitizeUser));
   });
@@ -70,14 +77,47 @@ export function createUsersRoutes({
     return res.status(201).json(sanitizeUser(result.user));
   });
 
-  router.post('/admin', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
-    const result = await createUserByAdminUseCase.execute((req.body || {}) as Record<string, unknown>);
+  router.post('/register-tenant', async (req: Request, res: Response) => {
+    if (!registerTenantAdminUseCase) {
+      return res.status(501).json({ message: 'Registro de tenant no soportado' });
+    }
+
+    const result = await registerTenantAdminUseCase.execute((req.body || {}) as Record<string, unknown>);
+    if ('error' in result) {
+      return res.status(result.statusCode).json({ message: result.error });
+    }
+
+    return res.status(201).json({
+      tenant: result.tenant,
+      branch: result.branch,
+      user: sanitizeUser(result.user)
+    });
+  });
+
+  router.post(
+    '/admin',
+    authMiddleware,
+    requireRolesMiddleware('ADMIN'),
+    requireBarberSlot,
+    async (req: Request, res: Response) => {
+      const tenantId = req.auth?.tenantId;
+      if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+
+      const payload = (req.body || {}) as Record<string, unknown>;
+      const result = await createUserByAdminUseCase.execute({
+        ...(payload as Record<string, unknown>),
+        tenantId,
+        branchIds: Array.isArray((payload as { branchIds?: string[] }).branchIds)
+          ? (payload as { branchIds: string[] }).branchIds
+          : undefined
+      });
     if ('error' in result) {
       return res.status(result.statusCode).json({ message: result.error });
     }
 
     return res.status(201).json(sanitizeUser(result.user));
-  });
+    }
+  );
 
   router.patch('/:id/whatsapp-consent', authMiddleware, async (req: Request, res: Response) => {
     const requesterId = req.auth?.sub;

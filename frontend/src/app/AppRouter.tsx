@@ -12,6 +12,7 @@ import { AdminAgendaPage } from '../modules/admin/presentation/pages/AdminAgenda
 import { AdminApprovalsPage } from '../modules/admin/presentation/pages/AdminApprovalsPage';
 import { AdminTenantsPage } from '../modules/admin/presentation/pages/AdminTenantsPage';
 import { useAuth } from '../shared/context/AuthContext';
+import { useTenant } from '../shared/context/TenantContext';
 import { LoginCard } from '../shared/components/LoginCard';
 import { RegisterPage } from '../modules/auth/presentation/pages/RegisterPage';
 import { PasswordRecoveryPage } from '../modules/auth/presentation/pages/PasswordRecoveryPage';
@@ -22,6 +23,7 @@ import { BarberDashboardPage } from '../modules/barber/presentation/pages/Barber
 
 export function AppRouter() {
   const { user, logout } = useAuth();
+  const { tenant } = useTenant();
   const isPending = Boolean(user && !user.approved && user.role !== 'GOD' && user.role !== 'ADMIN');
 
   return (
@@ -32,7 +34,7 @@ export function AppRouter() {
       <header className="border-b border-white/10 bg-black/40 backdrop-blur">
         <div className="app-container flex flex-wrap items-center justify-between gap-4 py-6">
           <div>
-            <p className="app-chip">Barberia Noir</p>
+            <p className="app-chip">{tenant?.name || 'Barberia Noir'}</p>
             <h1 className="text-3xl font-semibold">Agenda premium para barberias</h1>
             <p className="mt-2 text-sm text-zinc-300">Operaciones, citas y equipos en un solo lugar.</p>
           </div>

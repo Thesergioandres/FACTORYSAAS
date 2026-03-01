@@ -1,7 +1,8 @@
 export class ConsoleWhatsAppProvider {
-  async send({ appointmentId, event, roleTarget, phone, message }: { appointmentId: string; event: string; roleTarget: string; phone: string; message: string }) {
+  async send({ appointmentId, tenantId, event, roleTarget, phone, message }: { appointmentId: string; tenantId: string; event: string; roleTarget: string; phone: string; message: string }) {
     const payload = {
       appointmentId,
+      tenantId,
       event,
       roleTarget,
       phone,

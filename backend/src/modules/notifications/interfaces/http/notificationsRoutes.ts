@@ -1,5 +1,7 @@
 import { Router, type Request, type Response } from 'express';
+import mongoose from 'mongoose';
 import { database } from '../../../../shared/infrastructure/memory/database';
+import { WhatsAppLogModel } from '../../../../shared/infrastructure/mongoose/models/WhatsAppLogModel';
 import type { authenticateJwt } from '../../../../shared/interfaces/http/middlewares/authenticateJwt';
 import type { requireRoles } from '../../../../shared/interfaces/http/middlewares/requireRoles';
 
@@ -12,8 +14,22 @@ export function createNotificationsRoutes({
 }) {
   const router = Router();
 
-  router.get('/logs', authMiddleware, requireRolesMiddleware('ADMIN'), (_req: Request, res: Response) => {
-    res.json(database.whatsappLogs);
+  router.get('/logs', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
+    const tenantId = req.auth?.tenantId;
+    if (!tenantId && req.auth?.role !== 'GOD') {
+      return res.status(403).json({ message: 'No tenantId' });
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const query = req.auth?.role === 'GOD' ? {} : { tenantId };
+      const logs = await WhatsAppLogModel.find(query).sort({ createdAt: -1 }).limit(200).lean();
+      return res.json(logs);
+    }
+
+    const logs = req.auth?.role === 'GOD'
+      ? database.whatsappLogs
+      : database.whatsappLogs.filter((log) => (log as { tenantId?: string }).tenantId === tenantId);
+    return res.json(logs);
   });
 
   router.get('/config', authMiddleware, requireRolesMiddleware('ADMIN'), (_req: Request, res: Response) => {

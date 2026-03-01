@@ -21,6 +21,46 @@ type User = {
   createdAt: string;
 };
 
+type Plan = {
+  id: string;
+  name: string;
+  price: number;
+  maxBranches: number;
+  maxBarbers: number;
+  maxMonthlyAppointments: number;
+  features: string[];
+};
+
+type Tenant = {
+  id: string;
+  name: string;
+  slug: string;
+  subdomain: string;
+  planId: string;
+  planName?: string;
+  status: string;
+  customColors?: {
+    primary?: string;
+    secondary?: string;
+  };
+  logoUrl?: string | null;
+  config: AppConfig & {
+    bufferTimeMinutes: number;
+    requirePaymentForNoShows: boolean;
+    maxNoShowsBeforePayment: number;
+  };
+};
+
+type Branch = {
+  id: string;
+  tenantId: string;
+  name: string;
+  address: string;
+  phone?: string;
+  active: boolean;
+  createdAt: string;
+};
+
 type Service = {
   id: string;
   tenantId: string;
@@ -64,6 +104,9 @@ tomorrowAt10.setHours(10, 0, 0, 0);
 
 export const database: {
   users: User[];
+  plans: Plan[];
+  tenants: Tenant[];
+  branches: Branch[];
   services: Service[];
   barberSchedules: Array<Record<string, unknown>>;
   barberBlocks: Array<Record<string, unknown>>;
@@ -72,6 +115,85 @@ export const database: {
   whatsappLogs: Array<Record<string, unknown>>;
   appConfig: AppConfig;
 } = {
+  plans: [
+    {
+      id: 'plan_trial',
+      name: 'Trial',
+      price: 0,
+      maxBranches: 1,
+      maxBarbers: 2,
+      maxMonthlyAppointments: 80,
+      features: ['reports']
+    },
+    {
+      id: 'plan_pro',
+      name: 'Pro',
+      price: 49,
+      maxBranches: 5,
+      maxBarbers: 15,
+      maxMonthlyAppointments: 1000,
+      features: ['reports', 'whatsapp_custom']
+    }
+  ],
+  tenants: [
+    {
+      id: 'default_tenant',
+      name: 'Barberia Noir',
+      slug: 'noir',
+      subdomain: 'noir',
+      planId: 'plan_pro',
+      planName: 'Pro',
+      status: 'active',
+      customColors: {
+        primary: '#f59e0b',
+        secondary: '#fde68a'
+      },
+      logoUrl: null,
+      config: {
+        minAdvanceMinutes: 60,
+        cancelLimitMinutes: 120,
+        rescheduleLimitMinutes: 120,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '07:00',
+        reminderMinutes: [120, 1440],
+        whatsappEnabledEvents: {
+          APPOINTMENT_CREATED: true,
+          APPOINTMENT_CONFIRMED: true,
+          APPOINTMENT_RESCHEDULED: true,
+          APPOINTMENT_CANCELLED: true,
+          APPOINTMENT_COMPLETED: false,
+          APPOINTMENT_REASSIGNED: true,
+          APPOINTMENT_UPDATED: true,
+          APPOINTMENT_REMINDER: true
+        },
+        whatsappTemplates: {
+          APPOINTMENT_CREATED: 'Tu cita fue creada para {fecha}.',
+          APPOINTMENT_CONFIRMED: 'Tu cita fue confirmada para {fecha}.',
+          APPOINTMENT_RESCHEDULED: 'Tu cita fue reprogramada para {fecha}.',
+          APPOINTMENT_CANCELLED: 'Tu cita fue cancelada.',
+          APPOINTMENT_COMPLETED: 'Tu cita fue completada. Gracias por tu visita.',
+          APPOINTMENT_REASSIGNED: 'Tu cita fue reasignada. Te esperamos el {fecha}.',
+          APPOINTMENT_UPDATED: 'Tu cita cambio al estado {estado}.',
+          APPOINTMENT_REMINDER: 'Recordatorio: tu cita es el {fecha}.'
+        },
+        whatsappDebounceSeconds: 60,
+        bufferTimeMinutes: 10,
+        requirePaymentForNoShows: false,
+        maxNoShowsBeforePayment: 3
+      }
+    }
+  ],
+  branches: [
+    {
+      id: 'default_branch',
+      tenantId: 'default_tenant',
+      name: 'Sede Principal',
+      address: 'Pendiente',
+      phone: '+573000000000',
+      active: true,
+      createdAt: new Date().toISOString()
+    }
+  ],
   users: [
     {
       id: randomUUID(),

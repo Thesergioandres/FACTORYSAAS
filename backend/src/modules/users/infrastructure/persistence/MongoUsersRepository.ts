@@ -47,6 +47,11 @@ function mapUser(document: {
 }
 
 export class MongoUsersRepository implements UsersRepository {
+  async listAll(): Promise<UserRecord[]> {
+    const users = await UserModel.find({}).lean();
+    return users.map((item) => mapUser(item as typeof item & { _id: { toString(): string } }) as UserRecord);
+  }
+
   async findByEmail(email: string): Promise<UserRecord | null> {
     const user = await UserModel.findOne({ email, active: true }).lean();
     return mapUser(user as typeof user & { _id: { toString(): string } });

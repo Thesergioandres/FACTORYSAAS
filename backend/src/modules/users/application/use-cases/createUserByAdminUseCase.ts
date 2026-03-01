@@ -17,16 +17,20 @@ export class CreateUserByAdminUseCase {
     email,
     phone,
     password,
-    role
+    role,
+    tenantId,
+    branchIds
   }: {
     name?: string;
     email?: string;
     phone?: string;
     password?: string;
     role?: string;
+    tenantId?: string;
+    branchIds?: string[];
   }): Promise<{ user: Awaited<ReturnType<UsersRepository['create']>> } | { error: string; statusCode: number }> {
-    if (!name || !email || !phone || !password || !role) {
-      return this.error('name, email, phone, password y role son requeridos', 400);
+    if (!name || !email || !phone || !password || !role || !tenantId) {
+      return this.error('name, email, phone, password, role y tenantId son requeridos', 400);
     }
 
     if (!this.isE164(phone)) {
@@ -49,7 +53,9 @@ export class CreateUserByAdminUseCase {
       password,
       role: role as UserRole,
       whatsappConsent: true,
-      approved: true
+      approved: true,
+      tenantId,
+      branchIds: branchIds ?? []
     });
 
     return { user };

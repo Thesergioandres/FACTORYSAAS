@@ -10,7 +10,7 @@ type Recipient = {
 };
 
 type Provider = {
-  send(input: { appointmentId: string; event: string; roleTarget: string; phone: string; message: string }): Promise<{ status: 'ENVIADO' | 'PENDIENTE' }>;
+  send(input: { appointmentId: string; tenantId: string; event: string; roleTarget: string; phone: string; message: string }): Promise<{ status: 'ENVIADO' | 'PENDIENTE' }>;
 };
 
 export class NotificationsService {
@@ -107,6 +107,7 @@ async function sendNow(
     try {
       const result = await provider.send({
         appointmentId: appointment.id,
+        tenantId: appointment.tenantId,
         event,
         roleTarget: recipient.role,
         phone: recipient.phone,
