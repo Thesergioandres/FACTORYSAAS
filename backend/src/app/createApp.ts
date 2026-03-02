@@ -26,6 +26,7 @@ import { MongoBranchesRepository } from '../modules/branches/infrastructure/pers
 import { createNotificationsModule } from '../modules/notifications/module';
 import { createAppointmentsModule } from '../modules/appointments/module';
 import { createReportsModule } from '../modules/reports/module';
+import { createInventoryModule } from '../modules/inventory/module';
 import { healthRouter } from '../routes/health';
 import type { Env } from '../config/env';
 import type { Logger } from 'pino';
@@ -121,6 +122,12 @@ export function createApp({
     tenantsRepository
   });
 
+  const { inventoryRoutes } = createInventoryModule({
+    useMongo: persistence.useMongo,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
   const { appointmentsRoutes, appointmentsRepository } = createAppointmentsModule({
     tenantsRepository,
     servicesRepository,
@@ -202,6 +209,7 @@ export function createApp({
   app.use('/api/appointments', appointmentsRoutes);
   app.use('/api/reports', reportsRoutes);
   app.use('/api/notifications', notificationsRoutes);
+  app.use('/api/inventory', inventoryRoutes);
 
   app.use((_req, res) => {
     res.status(404).json({ message: 'Recurso no encontrado' });

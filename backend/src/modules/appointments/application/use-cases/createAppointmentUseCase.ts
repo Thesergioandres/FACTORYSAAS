@@ -47,8 +47,12 @@ type NotificationsService = {
 };
 
 type TenantsRepository = {
-  findById(id: string): Promise<{ id: string; config: { bufferTimeMinutes: number } } | null>;
+  findById(id: string): Promise<{ id: string; config: { bufferTimeMinutes: number; maxNoShowsBeforePayment: number; requirePaymentForNoShows: boolean } } | null>;
 };
+
+function buildPaymentLink({ tenantId, clientId }: { tenantId: string; clientId: string }) {
+  return `https://pay.essence.com/checkout?tenantId=${tenantId}&clientId=${clientId}`;
+}
 
 export class CreateAppointmentUseCase {
   constructor(
@@ -74,7 +78,7 @@ export class CreateAppointmentUseCase {
     notes?: string;
     actorRole?: string;
     actorUserId?: string;
-  }): Promise<{ appointment: AppointmentRecord } | { error: string; statusCode: number }> {
+  }): Promise<{ appointment: AppointmentRecord } | { error: string; statusCode: number; paymentUrl?: string }> {
     if (!tenantId || !branchId || !clientId || !barberId || !serviceId || !startAt) {
       return { error: 'tenantId, branchId, clientId, barberId, serviceId y startAt son requeridos', statusCode: 400 };
     }
@@ -101,6 +105,20 @@ export class CreateAppointmentUseCase {
     const tenant = await this.deps.tenantsRepository.findById(tenantId);
     if (!tenant) {
       return { error: 'Tenant inválido', statusCode: 404 };
+    }
+
+    const noShowLimit = Number(tenant.config.maxNoShowsBeforePayment || 0);
+    if (noShowLimit > 0) {
+      const clientAppointments = await this.deps.appointmentsRepository.list(tenantId, { clientId });
+      const noShowCount = clientAppointments.filter((item) => item.status === AppointmentState.NO_ASISTIO).length;
+
+      if (noShowCount >= noShowLimit) {
+        return {
+          error: 'Requiere pago previo para reservar nuevas citas',
+          statusCode: 402,
+          paymentUrl: buildPaymentLink({ tenantId, clientId })
+        };
+      }
     }
 
     const bufferTimeMinutes = tenant.config.bufferTimeMinutes || 0;

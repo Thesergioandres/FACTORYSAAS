@@ -44,7 +44,8 @@ export class InMemoryUsersRepository implements UsersRepository {
       approved: approved ?? true,
       tenantId: tenantId ?? null,
       branchIds: branchIds ?? [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      commissionRate: role === 'BARBER' ? 0.3 : 0
     };
 
     database.users.push(user as unknown as typeof database.users[0]);
@@ -67,6 +68,7 @@ export class InMemoryUsersRepository implements UsersRepository {
     if (payload.approved !== undefined) user.approved = payload.approved;
     if (payload.resetTokenHash !== undefined) user.resetTokenHash = payload.resetTokenHash;
     if (payload.resetTokenExpiresAt !== undefined) user.resetTokenExpiresAt = payload.resetTokenExpiresAt;
+    if (payload.commissionRate !== undefined) user.commissionRate = payload.commissionRate;
 
     return user;
   }

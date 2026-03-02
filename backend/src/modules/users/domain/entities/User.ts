@@ -15,6 +15,7 @@ type UserProps = {
   tenantId: string | null;
   branchIds?: string[];
   createdAt: string;
+  commissionRate?: number;
 };
 
 export type UserRecord = UserProps;
@@ -34,6 +35,7 @@ export class User {
   tenantId: string | null;
   branchIds: string[];
   createdAt: string;
+  commissionRate: number;
 
   constructor(props: UserProps) {
     this.id = props.id;
@@ -50,5 +52,6 @@ export class User {
     this.tenantId = props.tenantId;
     this.branchIds = props.branchIds ?? [];
     this.createdAt = props.createdAt;
+    this.commissionRate = props.commissionRate ?? 0.3;
   }
 }

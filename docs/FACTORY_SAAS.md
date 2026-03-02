@@ -1,12 +1,54 @@
-# Barberia Factory SaaS - Documentacion Completa
+# ESSENCE FACTORY SAAS - Documentacion de Producto
 
-## 1. Vision General
-Plataforma SaaS multi-tenant para barberias y negocios de cuidado personal. Gestiona agenda, usuarios por rol, servicios, notificaciones WhatsApp y reportes. El sistema funciona como monorepo con frontend React y backend Node/Express, comunicados por API REST.
+## 1. Concepto "The Factory"
+Essence no es una app vertical, es una infraestructura motorizada. Un cliente (dueno de negocio) entra, se registra y la fabrica construye en segundos una instancia completa con base de datos logica, reglas financieras y presencia web propia.
+
+## 2. Arquitectura de Niveles (Jerarquia de Poder)
+
+### Nivel 0: Panel GOD (tu)
+- Control de la fabrica: activar o suspender negocios.
+- Gestion de planes: crear planes (Bronce, Plata, Oro) con limites por recursos.
+- Metricas globales: ingresos totales y consumo de API WhatsApp.
+
+### Nivel 1: Tenant (dueno del negocio)
+- Identidad propia (white-label): logo y colores, la UI se adapta a su marca.
+- Modulos de operacion:
+  - Sistema POS: inventario de productos y ventas rapidas.
+  - Gestion de staff: perfiles de especialistas con horarios y comisiones.
+  - Multi-sede: control de sucursales desde una sola cuenta.
+  - Metricas financieras: ingresos, egresos y utilidad neta.
+
+### Nivel 2: Cliente final
+- Acceso independiente por negocio.
+- Panel de reservas con disponibilidad en tiempo real.
+- Seleccion de especialista y agenda por slots.
+
+## 3. Circulo de Oro: Reserva y SEO
+- Subdominios dinamicos por negocio: negocioX.essence.com.
+- SEO local: cada negocio tiene su propia landing indexable.
+- Conversion: clic -> registro/login -> reserva contextual.
+- Reserva inteligente: Servicio -> Especialista -> Fecha/Hora.
+
+## 4. Automatizacion por WhatsApp
+Motor de eventos para el ciclo de vida de la cita:
+- Reserva exitosa: confirmacion con fecha, hora y especialista.
+- Recordatorio (2h antes): link directo a ubicacion.
+- Post-venta: encuesta y calificacion de servicio.
+
+## 5. Diferenciales Tecnicos
+- Motor de colisiones: evita doble reserva en el mismo horario.
+- Gestion de no-shows: bloqueo o pago previo tras 3 faltas.
+- Offline fallback: sincronizacion automatica cuando regresa la conexion.
+
+---
+
+## 6. Vision General (Tecnica)
+Plataforma SaaS multi-tenant para negocios de servicios. Gestiona agenda, usuarios por rol, servicios, notificaciones WhatsApp y reportes. El sistema funciona como monorepo con frontend React y backend Node/Express, comunicados por API REST.
 
 ### Objetivos de Producto
 - Operar multiples negocios en un solo despliegue con aislamiento por tenant.
 - Automatizar el onboarding (provisioning) de nuevos negocios.
-- Controlar limites por plan (sedes, barberos, citas mensuales).
+- Controlar limites por plan (sedes, especialistas, citas mensuales).
 - Permitir white-label con marca y colores por tenant.
 - Centralizar notificaciones y recordatorios via WhatsApp.
 

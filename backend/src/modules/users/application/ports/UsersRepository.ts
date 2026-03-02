@@ -26,6 +26,7 @@ export type UpdateUserInput = Partial<{
   approved: boolean;
   tenantId: string | null;
   branchIds: string[];
+  commissionRate: number;
 }>;
 
 export interface UsersRepository {

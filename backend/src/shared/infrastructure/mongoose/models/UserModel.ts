@@ -9,6 +9,7 @@ type UserDocument = {
   active: boolean;
   whatsappConsent: boolean;
   approved: boolean;
+  commissionRate?: number;
   resetTokenHash?: string | null;
   resetTokenExpiresAt?: Date | null;
   tenantId?: string | null;
@@ -27,6 +28,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
     active: { type: Boolean, default: true },
     whatsappConsent: { type: Boolean, default: false },
     approved: { type: Boolean, default: false },
+    commissionRate: { type: Number, default: 0.3 },
     resetTokenHash: { type: String, default: null },
     resetTokenExpiresAt: { type: Date, default: null },
     tenantId: { type: String, default: null, index: true },

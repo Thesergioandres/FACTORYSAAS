@@ -18,6 +18,7 @@ function mapUser(document: {
   resetTokenExpiresAt?: Date | string | null;
   tenantId?: string | null;
   branchIds?: string[];
+  commissionRate?: number;
   createdAt?: Date | string;
 } | null): UserRecord | null {
   if (!document) {
@@ -36,6 +37,7 @@ function mapUser(document: {
     approved: document.approved,
     tenantId: document.tenantId ?? null,
     branchIds: document.branchIds ?? [],
+    commissionRate: document.commissionRate ?? 0.3,
     resetTokenHash: document.resetTokenHash ?? null,
     resetTokenExpiresAt: document.resetTokenExpiresAt instanceof Date
       ? document.resetTokenExpiresAt.toISOString()
@@ -85,7 +87,8 @@ export class MongoUsersRepository implements UsersRepository {
       whatsappConsent: user.whatsappConsent ?? false,
       approved: user.approved ?? true,
       tenantId: user.tenantId ?? null,
-      branchIds: user.branchIds ?? []
+      branchIds: user.branchIds ?? [],
+      commissionRate: user.role === 'BARBER' ? 0.3 : 0
     });
 
     return mapUser(doc.toObject() as typeof doc & { _id: { toString(): string } }) as UserRecord;
@@ -101,6 +104,7 @@ export class MongoUsersRepository implements UsersRepository {
     if (payload.active !== undefined) update.active = payload.active;
     if (payload.whatsappConsent !== undefined) update.whatsappConsent = payload.whatsappConsent;
     if (payload.approved !== undefined) update.approved = payload.approved;
+    if (payload.commissionRate !== undefined) update.commissionRate = payload.commissionRate;
 
     const updated = await UserModel.findByIdAndUpdate(id, update, { new: true }).lean();
     return mapUser(updated as typeof updated & { _id: { toString(): string } });

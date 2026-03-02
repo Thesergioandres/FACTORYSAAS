@@ -19,6 +19,7 @@ type User = {
   tenantId: string | null;
   branchIds: string[];
   createdAt: string;
+  commissionRate?: number;
 };
 
 type Plan = {
@@ -71,6 +72,18 @@ type Service = {
   active: boolean;
 };
 
+type Product = {
+  id: string;
+  tenantId: string;
+  name: string;
+  sku?: string;
+  description?: string;
+  price: number;
+  stock: number;
+  active: boolean;
+  createdAt: string;
+};
+
 type Appointment = {
   id: string;
   tenantId: string;
@@ -108,6 +121,7 @@ export const database: {
   tenants: Tenant[];
   branches: Branch[];
   services: Service[];
+  inventory: Product[];
   barberSchedules: Array<Record<string, unknown>>;
   barberBlocks: Array<Record<string, unknown>>;
   appointments: Appointment[];
@@ -207,7 +221,8 @@ export const database: {
       approved: true,
       tenantId: null,
       branchIds: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      commissionRate: 0
     },
     {
       id: randomUUID(),
@@ -221,7 +236,8 @@ export const database: {
       approved: true,
       tenantId: 'default_tenant',
       branchIds: ['default_branch'],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      commissionRate: 0
     },
     {
       id: randomUUID(),
@@ -235,7 +251,8 @@ export const database: {
       approved: true,
       tenantId: 'default_tenant',
       branchIds: ['default_branch'],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      commissionRate: 0.3
     },
     {
       id: randomUUID(),
@@ -249,7 +266,8 @@ export const database: {
       approved: true,
       tenantId: 'default_tenant',
       branchIds: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      commissionRate: 0
     }
   ],
   services: [
@@ -272,6 +290,7 @@ export const database: {
       active: true
     }
   ],
+  inventory: [],
   barberSchedules: [],
   barberBlocks: [],
   appointments: [

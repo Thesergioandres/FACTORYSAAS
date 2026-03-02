@@ -9,9 +9,9 @@ export function createReportsModule({
   authenticateJwt: authMiddleware,
   requireRoles: requireRolesMiddleware
 }: {
-  usersRepository: { list(tenantId: string, role?: string): Promise<Array<{ id: string; role: string }>> };
+  usersRepository: { list(tenantId: string, role?: string): Promise<Array<{ id: string; role: string; name?: string; commissionRate?: number }>> };
   servicesRepository: { list(tenantId: string, options?: { onlyActive?: boolean }): Promise<Array<{ id: string; price?: number }>> };
-  appointmentsRepository: { list(tenantId: string, filters?: { clientId?: string; barberId?: string }): Promise<Array<{ id: string; status: string; clientId: string; barberId: string }>> };
+  appointmentsRepository: { list(tenantId: string, filters?: { clientId?: string; barberId?: string }): Promise<Array<{ id: string; status: string; clientId: string; barberId: string; serviceId: string; startAt: string }>> };
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireRoles: typeof requireRoles;
 }) {
@@ -61,8 +61,70 @@ export function createReportsModule({
     };
   };
 
+  const getDaily = async (tenantId: string, date?: string) => {
+    const [users, services, appointments] = await Promise.all([
+      usersRepository.list(tenantId),
+      servicesRepository.list(tenantId),
+      appointmentsRepository.list(tenantId)
+    ]);
+
+    const target = date ? new Date(`${date}T00:00:00`) : new Date();
+    const start = new Date(target);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    const servicePrices = new Map(services.map((service) => [service.id, Number(service.price || 0)]));
+    const barberMap = new Map(
+      users
+        .filter((user) => user.role === 'BARBER')
+        .map((user) => [user.id, user])
+    );
+
+    const commissionByBarber: Record<string, { barberId: string; barberName: string; rate: number; total: number; appointments: number }> = {};
+    let grossRevenue = 0;
+
+    appointments
+      .filter((appointment) => appointment.status === 'COMPLETADA')
+      .filter((appointment) => {
+        const startAt = new Date(appointment.startAt);
+        return startAt >= start && startAt < end;
+      })
+      .forEach((appointment) => {
+        const price = servicePrices.get(appointment.serviceId) || 0;
+        grossRevenue += price;
+
+        const barber = barberMap.get(appointment.barberId);
+        const rate = barber?.commissionRate ?? 0.3;
+        const key = appointment.barberId;
+
+        if (!commissionByBarber[key]) {
+          commissionByBarber[key] = {
+            barberId: key,
+            barberName: barber?.name || 'Sin nombre',
+            rate,
+            total: 0,
+            appointments: 0
+          };
+        }
+
+        commissionByBarber[key].appointments += 1;
+        commissionByBarber[key].total += price * rate;
+      });
+
+    return {
+      date: start.toISOString().split('T')[0],
+      grossRevenue: Number(grossRevenue.toFixed(2)),
+      commissions: Object.values(commissionByBarber).map((item) => ({
+        ...item,
+        total: Number(item.total.toFixed(2))
+      }))
+    };
+  };
+
   const reportsRoutes = createReportsRoutes({
     getSummary,
+    getDaily,
     authenticateJwt: authMiddleware,
     requireRoles: requireRolesMiddleware
   });
