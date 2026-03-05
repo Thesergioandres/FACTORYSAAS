@@ -58,6 +58,8 @@ const productSchema = new mongoose.Schema<ProductDocument>(
   { timestamps: true }
 );
 
+productSchema.index({ tenantId: 1, active: 1 });
+
 export const ProductModel: Model<ProductDocument> =
   (mongoose.models.Product as Model<ProductDocument>) ||
   mongoose.model('Product', productSchema);

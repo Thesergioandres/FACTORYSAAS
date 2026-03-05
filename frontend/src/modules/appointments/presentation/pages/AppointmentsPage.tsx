@@ -27,6 +27,7 @@ export function AppointmentsPage() {
   const [startAt, setStartAt] = useState('');
   const [notes, setNotes] = useState('');
   const { appointments, loading, error, addAppointment } = useAppointments(!!sessionUser);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     async function loadOptions() {
@@ -48,6 +49,14 @@ export function AppointmentsPage() {
     }
 
     loadOptions();
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const handleChange = () => setIsMobile(media.matches);
+    handleChange();
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
   }, []);
 
   const handleSubmit = async (event: FormEvent) => {
@@ -174,14 +183,17 @@ export function AppointmentsPage() {
         {loading ? (
           <p className="text-zinc-400">Cargando...</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="space-y-2">
             {appointments.map((appointment) => (
-              <li key={appointment.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div
+                key={appointment.id}
+                className={isMobile ? 'app-card-soft flex flex-col gap-2' : 'rounded-xl border border-white/10 bg-white/5 p-3'}
+              >
                 <p>{new Date(appointment.startAt).toLocaleString()}</p>
                 <p className="text-sm text-zinc-300">Estado: {appointment.status}</p>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </section>

@@ -124,6 +124,8 @@ const tenantSchema = new mongoose.Schema<TenantDocument>(
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
 
+tenantSchema.index({ status: 1, planId: 1 });
+
 export const TenantModel: Model<TenantDocument> =
   (mongoose.models.Tenant as Model<TenantDocument>) ||
   mongoose.model('Tenant', tenantSchema);

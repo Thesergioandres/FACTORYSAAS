@@ -15,7 +15,7 @@ const formatPhone = (phone?: string | null) => {
 };
 
 export function CartDrawer({ isOpen, onClose, tenantPhone }: CartDrawerProps) {
-  const { items, addItem, removeItem, clearCart, totalAmount } = useCart();
+  const { items, addItemOptimistic, removeItem, clearCart, totalAmount } = useCart();
   const { tenant } = useTenant();
   const phone = formatPhone(tenantPhone);
   const [deliveryMode, setDeliveryMode] = useState<'pickup' | 'delivery'>('pickup');
@@ -42,7 +42,7 @@ export function CartDrawer({ isOpen, onClose, tenantPhone }: CartDrawerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40">
-      <div className="h-full w-full max-w-md border-l border-[#00F0FF] bg-[#0A0F1E]/80 p-6 backdrop-blur-[20px]">
+      <div className="h-full w-full border-l border-[#00F0FF] bg-[#0A0F1E]/80 p-6 backdrop-blur-[20px] sm:w-[400px]">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-ink">Carrito</h3>
           <button className="btn-ghost" type="button" onClick={onClose}>
@@ -66,7 +66,7 @@ export function CartDrawer({ isOpen, onClose, tenantPhone }: CartDrawerProps) {
                       -
                     </button>
                     <span className="text-sm text-ink">{item.quantity}</span>
-                    <button className="btn-ghost" type="button" onClick={() => addItem({ id: item.id, name: item.name, price: item.price })}>
+                    <button className="btn-ghost" type="button" onClick={() => addItemOptimistic({ id: item.id, name: item.name, price: item.price })}>
                       +
                     </button>
                   </div>

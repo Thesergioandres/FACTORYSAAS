@@ -67,7 +67,9 @@ export class MongoInventoryRepository implements InventoryRepository {
   }
 
   async listPublic(tenantId: string): Promise<ProductRecord[]> {
-    const docs = await ProductModel.find({ tenantId, active: true, stock: { $gt: 0 } }).lean<ProductDoc[]>();
+    const docs = await ProductModel.find({ tenantId, active: true, stock: { $gt: 0 } })
+      .select('tenantId name category price stock imageUrl active')
+      .lean<ProductDoc[]>();
     return docs.map((doc) => mapProduct(doc) as ProductRecord);
   }
 

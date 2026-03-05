@@ -1,28 +1,14 @@
 services:
-  nginx:
-    image: nginx:1.27-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-      - backend
-
-  frontend:
+  app:
     build:
-      context: ./frontend
-    environment:
-      - VITE_API_BASE_URL=http://localhost/api
-
-  backend:
-    build:
-      context: ./backend
+      context: .
+      dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
       - PORT=4000
-      - MONGODB_URI=mongodb://mongo:27017/barberia
+      - MONGODB_URI=mongodb://mongo:27017/factorysaas
       - REDIS_URL=redis://redis:6379
+      - USE_MONGO=true
       - ENABLE_JOBS=true
       - WHATSAPP_PROVIDER=mock
       - JWT_SECRET=change-me-in-production
@@ -46,16 +32,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-
-  mongo-express:
-    image: mongo-express:1.0.2
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
-    depends_on:
-      - mongo
 
 volumes:
   mongo_data:

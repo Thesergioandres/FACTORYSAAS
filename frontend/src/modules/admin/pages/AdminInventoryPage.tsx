@@ -1,5 +1,6 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -14,6 +15,41 @@ type InventoryItem = {
   imageUrl?: string;
   active: boolean;
 };
+
+type InventoryRowData = {
+  items: InventoryItem[];
+  onEdit: (item: InventoryItem) => void;
+  onToggle: (item: InventoryItem) => void;
+};
+
+function InventoryRow({ index, style, data }: ListChildComponentProps<InventoryRowData>) {
+  const item = data.items[index];
+  return (
+    <div style={style} className="px-1">
+      <div className="app-card-soft flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">{item.name}</p>
+          <p className="text-xs text-muted">SKU: {item.sku || 'N/A'}</p>
+          <p className="text-xs text-muted">Categoria: {item.category}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-ink">$ {item.price}</p>
+          <p className={`text-xs ${item.stock <= LOW_STOCK_THRESHOLD ? 'text-secondary' : 'text-muted'}`}>
+            Stock: {item.stock}
+          </p>
+          <div className="mt-2 flex items-center justify-end gap-2">
+            <button className="btn-ghost" type="button" onClick={() => data.onEdit(item)}>
+              Editar
+            </button>
+            <button className="btn-ghost" type="button" onClick={() => data.onToggle(item)}>
+              {item.active ? 'Desactivar' : 'Activar'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const emptyForm = {
   name: '',
@@ -39,6 +75,18 @@ export function AdminInventoryPage() {
     queryKey: ['inventory'],
     queryFn: () => apiRequest<InventoryItem[]>('/inventory')
   });
+
+  const inventoryItems = inventoryQuery.data || [];
+  const shouldVirtualize = inventoryItems.length > 100;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const handleChange = () => setIsMobile(media.matches);
+    handleChange();
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
 
   const lowStock = useMemo(
     () => (inventoryQuery.data || []).filter((item) => item.stock <= LOW_STOCK_THRESHOLD),
@@ -176,19 +224,21 @@ export function AdminInventoryPage() {
           <p className="mt-4 text-sm text-secondary">No se pudo cargar inventario.</p>
         ) : (
           <div className="mt-4 grid gap-3">
-            {(inventoryQuery.data || []).map((item) => (
-              <div key={item.id} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold">{item.name}</p>
-                  <p className="text-xs text-muted">SKU: {item.sku || 'N/A'}</p>
-                  <p className="text-xs text-muted">Categoria: {item.category}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-ink">$ {item.price}</p>
+            {isMobile ? (
+              inventoryItems.map((item) => (
+                <div key={item.id} className="app-card-soft flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold">{item.name}</p>
+                      <p className="text-xs text-muted">SKU: {item.sku || 'N/A'}</p>
+                      <p className="text-xs text-muted">Categoria: {item.category}</p>
+                    </div>
+                    <span className="text-sm font-semibold">$ {item.price}</span>
+                  </div>
                   <p className={`text-xs ${item.stock <= LOW_STOCK_THRESHOLD ? 'text-secondary' : 'text-muted'}`}>
                     Stock: {item.stock}
                   </p>
-                  <div className="mt-2 flex items-center justify-end gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
                       Editar
                     </button>
@@ -197,15 +247,49 @@ export function AdminInventoryPage() {
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : shouldVirtualize ? (
+              <FixedSizeList
+                height={520}
+                itemCount={inventoryItems.length}
+                itemSize={120}
+                width="100%"
+                itemData={{ items: inventoryItems, onEdit: openEdit, onToggle: toggleItem }}
+              >
+                {InventoryRow}
+              </FixedSizeList>
+            ) : (
+              inventoryItems.map((item) => (
+                <div key={item.id} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{item.name}</p>
+                    <p className="text-xs text-muted">SKU: {item.sku || 'N/A'}</p>
+                    <p className="text-xs text-muted">Categoria: {item.category}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-ink">$ {item.price}</p>
+                    <p className={`text-xs ${item.stock <= LOW_STOCK_THRESHOLD ? 'text-secondary' : 'text-muted'}`}>
+                      Stock: {item.stock}
+                    </p>
+                    <div className="mt-2 flex items-center justify-end gap-2">
+                      <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
+                        Editar
+                      </button>
+                      <button className="btn-ghost" type="button" onClick={() => toggleItem(item)}>
+                        {item.active ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>
 
       {isModalOpen ? (
-        <div className="overlay-surface fixed inset-0 z-50 flex items-center justify-center backdrop-blur">
-          <form className="app-card w-full max-w-lg space-y-4" onSubmit={handleSubmit}>
+        <div className="overlay-surface fixed inset-0 z-50 flex items-end justify-center backdrop-blur sm:items-center">
+          <form className="app-card w-full space-y-4 rounded-none sm:max-w-lg sm:rounded-2xl" onSubmit={handleSubmit}>
             <div>
               <h3 className="text-lg font-semibold">
                 {editingItem ? 'Editar producto' : 'Nuevo producto'}

@@ -37,7 +37,8 @@ export class CreateUserByAdminUseCase {
       return this.error('phone debe estar en formato E.164', 400);
     }
 
-    if (![UserRole.GOD, UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT].includes(role as UserRole)) {
+    const allowedRoles = [UserRole.GOD, UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT] as const;
+    if (!allowedRoles.includes(role as (typeof allowedRoles)[number])) {
       return this.error('role inválido', 400);
     }
 

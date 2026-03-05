@@ -55,7 +55,7 @@ function StorefrontContent({
   isLoading,
   isError
 }: StorefrontContentProps) {
-  const { addItem, totalItems, setIsCartOpen } = useCart();
+  const { addItemOptimistic, totalItems, setIsCartOpen } = useCart();
   const [isBouncing, setIsBouncing] = useState(false);
   const prevItemsRef = useRef(totalItems);
 
@@ -100,7 +100,7 @@ function StorefrontContent({
       ) : products.length === 0 ? (
         <p className="text-sm text-muted">No hay productos disponibles en este momento.</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
             <div key={product.id} className="app-card-soft flex flex-col gap-3">
               <div className="h-36 w-full overflow-hidden rounded-2xl bg-black/20">
@@ -123,7 +123,7 @@ function StorefrontContent({
               <button
                 className="btn-primary"
                 type="button"
-                onClick={() => addItem({ id: product.id, name: product.name, price: product.price })}
+                onClick={() => addItemOptimistic({ id: product.id, name: product.name, price: product.price })}
               >
                 Anadir al carrito
               </button>

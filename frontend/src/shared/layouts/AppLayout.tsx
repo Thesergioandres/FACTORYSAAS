@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
 import { BrandMark } from '../components/BrandMark';
@@ -14,6 +15,7 @@ export function AppLayout() {
   const activeModules = tenant?.activeModules || [];
   const isGod = user?.role === 'GOD';
   const isOwner = user?.role === 'OWNER';
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables']);
 
   const adminModules = Object.values(moduleRegistry).filter(
@@ -37,6 +39,13 @@ export function AppLayout() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              className="app-nav-surface flex items-center gap-2 px-3 py-2 text-xs lg:hidden"
+              type="button"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <span>Menu</span>
+            </button>
             {user ? (
               <div className="text-right text-xs text-muted">
                 <p className="font-semibold text-ink">{user.name || 'Usuario'}</p>
@@ -53,7 +62,7 @@ export function AppLayout() {
       </header>
 
       <div className="app-container">
-        <nav className="app-nav-surface mt-6 flex flex-wrap gap-2">
+        <nav className="app-nav-surface mt-6 hidden flex-wrap gap-2 lg:flex">
           {user?.role === 'ADMIN' || user?.role === 'OWNER' || user?.role === 'GOD' ? (
             <NavLink className={navLinkClass} to="/admin">
               Dashboard
@@ -81,7 +90,59 @@ export function AppLayout() {
         </nav>
       </div>
 
-      <main className="app-container py-10">
+      {isMenuOpen ? (
+        <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setIsMenuOpen(false)}>
+          <aside
+            className="app-nav-surface absolute left-4 top-4 w-72 max-w-[80vw] p-4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm font-semibold">Navegacion</p>
+              <button className="btn-ghost" type="button" onClick={() => setIsMenuOpen(false)}>
+                Cerrar
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {user?.role === 'ADMIN' || user?.role === 'OWNER' || user?.role === 'GOD' ? (
+                <NavLink className={navLinkClass} to="/admin" onClick={() => setIsMenuOpen(false)}>
+                  Dashboard
+                </NavLink>
+              ) : null}
+              {(user?.role === 'ADMIN' || user?.role === 'OWNER' || user?.role === 'GOD')
+                ? adminModules.map((module) => (
+                    <NavLink
+                      key={module.key}
+                      className={navLinkClass}
+                      to={module.adminPath as string}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {module.label}
+                    </NavLink>
+                  ))
+                : null}
+              {user?.role === 'STAFF'
+                ? staffModules.map((module) => (
+                    <NavLink
+                      key={module.key}
+                      className={navLinkClass}
+                      to={module.adminPath as string}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {module.label}
+                    </NavLink>
+                  ))
+                : null}
+              {user?.role === 'GOD' ? (
+                <NavLink className={navLinkClass} to="/god" onClick={() => setIsMenuOpen(false)}>
+                  God Panel
+                </NavLink>
+              ) : null}
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
+      <main className="app-container py-10 pb-24 lg:pb-10">
         <Outlet />
       </main>
     </div>

@@ -10,6 +10,7 @@ type CartItem = {
 type CartState = {
   items: CartItem[];
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
+  addItemOptimistic: (item: Omit<CartItem, 'quantity'>, quantity?: number, confirm?: () => Promise<unknown>) => void;
   removeItem: (id: string, quantity?: number) => void;
   clearCart: () => void;
   totalAmount: number;
@@ -65,9 +66,20 @@ export function CartProvider({ tenantId, children }: CartProviderProps) {
     window.localStorage.setItem(storageKey, JSON.stringify(items));
   }, [items, tenantId]);
 
-  const addItem = useCallback(
-    (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const addItemOptimistic = useCallback(
+    (item: Omit<CartItem, 'quantity'>, quantity = 1, confirm?: () => Promise<unknown>) => {
+      let previousItems: CartItem[] = [];
       setItems((prev) => {
+        previousItems = prev.map((entry) => ({ ...entry }));
         const existing = prev.find((entry) => entry.id === item.id);
         if (existing) {
           return prev.map((entry) =>
@@ -87,8 +99,28 @@ export function CartProvider({ tenantId, children }: CartProviderProps) {
         setToastMessage(null);
         toastTimeoutRef.current = null;
       }, 2000);
+
+      const confirmPromise = confirm ? confirm() : Promise.resolve();
+      confirmPromise.catch(() => {
+        setItems(previousItems);
+        setToastMessage('No se pudo agregar el producto');
+        if (toastTimeoutRef.current) {
+          window.clearTimeout(toastTimeoutRef.current);
+        }
+        toastTimeoutRef.current = window.setTimeout(() => {
+          setToastMessage(null);
+          toastTimeoutRef.current = null;
+        }, 2000);
+      });
     },
     []
+  );
+
+  const addItem = useCallback(
+    (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
+      addItemOptimistic(item, quantity);
+    },
+    [addItemOptimistic]
   );
 
   const removeItem = useCallback((id: string, quantity = 1) => {
@@ -120,6 +152,7 @@ export function CartProvider({ tenantId, children }: CartProviderProps) {
     () => ({
       items,
       addItem,
+      addItemOptimistic,
       removeItem,
       clearCart,
       totalAmount,
@@ -128,7 +161,7 @@ export function CartProvider({ tenantId, children }: CartProviderProps) {
       setIsCartOpen,
       toastMessage
     }),
-    [items, addItem, removeItem, clearCart, totalAmount, totalItems, isCartOpen, toastMessage]
+    [items, addItem, addItemOptimistic, removeItem, clearCart, totalAmount, totalItems, isCartOpen, toastMessage]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

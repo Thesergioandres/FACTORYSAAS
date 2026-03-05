@@ -1,0 +1,23 @@
+{
+  "name": "ESSENCE FACTORY SAAS",
+  "short_name": "ESSENCE",
+  "description": "Plataforma white-label multiindustria para reservas y operaciones.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0c10",
+  "theme_color": "#0b0c10",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/essence-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/essence-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

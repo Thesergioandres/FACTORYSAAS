@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "summary": "Resumen",
+    "users": "Usuarios",
+    "services": "Servicios",
+    "appointments": "Citas",
+    "agenda": "Agenda",
+    "whatsapp": "WhatsApp",
+    "reports": "Reportes",
+    "businesses": "Negocios",
+    "approvals": "Aprobaciones"
+  },
+  "landing": {
+    "heroTitle": "Construimos el motor de tu negocio.",
+    "heroSubtitle": "ESSENCE FACTORY SAAS para operar verticales con marca propia, control total y expansion rapida.",
+    "ctaExplore": "Explorar barberias",
+    "ctaAbout": "Quienes somos",
+    "industriesTitle": "Servicios por industria",
+    "industriesSubtitle": "Flujos y configuraciones listas para cada vertical.",
+    "footerLanguage": "Idioma"
+  }
+}

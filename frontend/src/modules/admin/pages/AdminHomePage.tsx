@@ -1,19 +1,16 @@
-import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { PlanGuard } from '../../../shared/components/PlanGuard';
+import { OnboardingTour } from '../../../shared/components/OnboardingTour';
 import { useTenant, type TenantRecord } from '../../../shared/context/TenantContext';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { useLabels } from '../../../shared/hooks/useLabels';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 import { BusinessHoursSettings } from '../presentation/components/BusinessHoursSettings';
 import { createDefaultBusinessHours, type BusinessHour } from '../../../shared/utils/businessHours';
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from 'recharts';
+const DashboardStats = lazy(() => import('../presentation/components/DashboardStats').then((mod) => ({
+  default: mod.DashboardStats
+})));
 
 type SummaryResponse = {
   totalSales: number;
@@ -24,8 +21,10 @@ type SummaryResponse = {
 };
 
 export function AdminHomePage() {
+  const { user } = useAuth();
   const { tenant, setTenant } = useTenant();
   const labels = useLabels();
+  const [showTour, setShowTour] = useState(false);
   const [copied, setCopied] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -73,9 +72,21 @@ export function AdminHomePage() {
     salesTrend: []
   };
 
-  const salesChartData = summary.salesTrend.length
-    ? summary.salesTrend.map((value, index) => ({ day: `D${index + 1}`, sales: value }))
-    : [];
+  const tourSteps = [
+    {
+      title: 'Bienvenido a tu Factory',
+      description: 'Aqui configuras tu marca y la identidad de tu negocio.'
+    },
+    {
+      title: 'Crea tus primeros servicios',
+      description: 'Define servicios y precios para empezar a vender.'
+    },
+    {
+      title: 'Metricas en tiempo real',
+      description: 'Revisa ventas, citas y salud del negocio en tiempo real.'
+    }
+  ];
+
 
   const publicUrl = useMemo(() => {
     if (!tenant?.subdomain) {
@@ -96,6 +107,24 @@ export function AdminHomePage() {
     setPrimaryColor(tenant.primaryColor || tenant.customColors?.primary || '#00F0FF');
     setSecondaryColor(tenant.secondaryColor || tenant.customColors?.secondary || '#8A2BE2');
   }, [tenant]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setShowTour(false);
+      return;
+    }
+    const key = `onboarding:admin:${user.id}`;
+    const hasSeen = window.localStorage.getItem(key);
+    setShowTour(!hasSeen);
+  }, [user?.id]);
+
+  const finishTour = () => {
+    if (user?.id) {
+      const key = `onboarding:admin:${user.id}`;
+      window.localStorage.setItem(key, '1');
+    }
+    setShowTour(false);
+  };
 
   const handleCopy = async () => {
     try {
@@ -211,6 +240,7 @@ export function AdminHomePage() {
 
   return (
     <section className="space-y-6">
+      <OnboardingTour steps={tourSteps} isOpen={showTour} onFinish={finishTour} />
       <header className="app-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -255,34 +285,16 @@ export function AdminHomePage() {
       </div>
 
       {showPos || showStorefront ? (
-        <div className="app-card">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-semibold">Tendencia de ventas</h3>
-              <p className="text-sm text-muted">Ultimos 7 dias</p>
-            </div>
-          </div>
-          {salesChartData.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">Sin datos de ventas recientes.</p>
-          ) : (
-            <div className="mt-4 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesChartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="day" stroke="var(--muted)" fontSize={12} />
-                  <YAxis stroke="var(--muted)" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(15, 17, 24, 0.92)',
-                      border: '1px solid rgba(248,250,252,0.12)',
-                      borderRadius: '12px'
-                    }}
-                  />
-                  <Line type="monotone" dataKey="sales" stroke="var(--primary)" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
+        <Suspense fallback={<div className="app-card">Cargando analitica...</div>}>
+          <DashboardStats
+            salesTrend={summary.salesTrend}
+            usageMetrics={[
+              { label: 'Citas hoy', value: summary.appointmentsToday },
+              { label: 'Staff activo', value: summary.activeStaff },
+              { label: 'Productos', value: summary.totalProducts }
+            ]}
+          />
+        </Suspense>
       ) : null}
 
       <div className="app-card">

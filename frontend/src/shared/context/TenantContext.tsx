@@ -21,6 +21,7 @@ export type TenantRecord = {
     secondary?: string;
   };
   logoUrl?: string | null;
+  phone?: string | null;
   status?: string;
   businessHours?: BusinessHour[];
 };
@@ -78,15 +79,28 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   // Auto-resolve tenant for ADMIN/OWNER or STAFF roles based on their tied tenantId
   useEffect(() => {
     if (user && (user.role === 'ADMIN' || user.role === 'OWNER' || user.role === 'STAFF') && user.tenantId && !tenant) {
+      const controller = new AbortController();
+      let active = true;
       setLoading(true);
-      apiRequest<TenantRecord>(`/tenants/${user.tenantId}`)
+      apiRequest<TenantRecord>(`/tenants/${user.tenantId}`, { signal: controller.signal })
         .then((data) => {
+          if (!active) return;
           setTenantState(data);
           applyBranding(data);
         })
-        .catch(() => setTenantState(null))
-        .finally(() => setLoading(false));
+        .catch(() => {
+          if (!active) return;
+          setTenantState(null);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+      return () => {
+        active = false;
+        controller.abort();
+      };
     }
+    return undefined;
   }, [user, tenant, applyBranding]);
 
   const setTenant = useCallback((t: TenantRecord | null) => {
@@ -94,31 +108,40 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     applyBranding(t);
   }, [applyBranding]);
 
-  const loadTenantBySlug = useCallback(async (slug: string) => {
+  const loadTenantBySlug = useCallback(async (slug: string, signal?: AbortSignal) => {
     try {
       setLoading(true);
-      const preview = await apiRequest<TenantRecord>(`/tenants/slug/${slug}`);
-      const data = preview?.id ? await apiRequest<TenantRecord>(`/tenants/${preview.id}`) : preview;
+      const preview = await apiRequest<TenantRecord>(`/tenants/slug/${slug}`, { signal });
+      const data = preview?.id
+        ? await apiRequest<TenantRecord>(`/tenants/${preview.id}`, { signal })
+        : preview;
+      if (signal?.aborted) return;
       setTenantState(data);
       applyBranding(data);
     } catch (_err) {
-      setTenantState(null);
+      if (!signal?.aborted) {
+        setTenantState(null);
+      }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [applyBranding]);
 
   useEffect(() => {
     const { mode, slug } = resolveHostContext(window.location.hostname);
+    const controller = new AbortController();
 
     if (mode === 'tenant' && slug && !tenant) {
-      loadTenantBySlug(slug);
-      return;
+      loadTenantBySlug(slug, controller.signal);
+      return () => controller.abort();
     }
 
     if (mode !== 'tenant') {
       applyBranding(null);
     }
+    return () => controller.abort();
   }, [tenant, loadTenantBySlug, applyBranding]);
 
   const value = useMemo(() => ({ tenant, loading, setTenant, loadTenantBySlug }), [tenant, loading, setTenant, loadTenantBySlug]);

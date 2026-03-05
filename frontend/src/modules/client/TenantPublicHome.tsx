@@ -111,7 +111,7 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
         ) : products.length === 0 ? (
           <p className="text-sm text-muted">No hay productos disponibles en este momento.</p>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product) => (
               <div key={product.id} className="app-card-soft flex flex-col gap-3 mirror-card hover-lift reveal-on-scroll">
                 <div className="h-36 w-full overflow-hidden rounded-2xl bg-black/20">

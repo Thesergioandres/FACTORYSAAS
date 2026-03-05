@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { VERTICALS_REGISTRY } from '../../shared/constants/verticalsRegistry';
 import { AboutSection } from './components/AboutSection';
 
@@ -15,6 +16,7 @@ function setSeo(title: string, description: string) {
 }
 
 export function LandingPage() {
+  const { t, i18n } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('Todos');
 
   useEffect(() => {
@@ -78,17 +80,17 @@ export function LandingPage() {
         <div className="app-card p-8 md:p-10">
           <p className="app-chip font-sans tracking-[0.35em]">The factory hub</p>
           <h2 className="mt-6 text-5xl font-semibold leading-tight md:text-6xl">
-            Construimos el motor de tu negocio.
+            {t('landing.heroTitle')}
           </h2>
           <p className="mt-5 text-sm text-muted">
-            ESSENCE FACTORY SAAS para operar verticales con marca propia, control total y expansion rapida.
+            {t('landing.heroSubtitle')}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link className="btn-primary" to="/barberias-landing">
-              Explorar barberias
+              {t('landing.ctaExplore')}
             </Link>
             <Link className="btn-secondary" to="#quienes-somos">
-              Quienes somos
+              {t('landing.ctaAbout')}
             </Link>
           </div>
         </div>
@@ -114,9 +116,9 @@ export function LandingPage() {
       <div className="app-card py-24">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-semibold">Servicios por industria</h3>
+            <h3 className="text-2xl font-semibold">{t('landing.industriesTitle')}</h3>
             <p className="mt-2 text-sm text-muted">
-              Flujos y configuraciones listas para cada vertical.
+              {t('landing.industriesSubtitle')}
             </p>
           </div>
           <Link className="btn-secondary" to="/barberias-landing">Ver detalle barberias</Link>
@@ -142,7 +144,7 @@ export function LandingPage() {
           })}
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredVerticals.map((vertical) => {
             const isReady = readySlugs.has(vertical.slug);
             return (
@@ -170,6 +172,26 @@ export function LandingPage() {
           })}
         </div>
       </div>
+
+      <footer className="app-card-soft flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs uppercase tracking-[0.3em] text-muted">{t('landing.footerLanguage')}</p>
+        <div className="flex items-center gap-2">
+          <button
+            className={`btn-ghost ${i18n.language === 'es' ? 'text-primary' : ''}`}
+            type="button"
+            onClick={() => i18n.changeLanguage('es')}
+          >
+            ES
+          </button>
+          <button
+            className={`btn-ghost ${i18n.language === 'en' ? 'text-primary' : ''}`}
+            type="button"
+            onClick={() => i18n.changeLanguage('en')}
+          >
+            EN
+          </button>
+        </div>
+      </footer>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { apiRequest } from '../../../../shared/infrastructure/http/apiClient';
 import { AdminNav } from '../components/AdminNav';
 
@@ -25,9 +26,27 @@ type AppConfig = {
   whatsappTemplates: Record<string, string>;
 };
 
+type LogRowData = {
+  logs: WhatsAppLog[];
+};
+
+function LogRow({ index, style, data }: ListChildComponentProps<LogRowData>) {
+  const log = data.logs[index];
+  return (
+    <div style={style} className="px-1">
+      <div className="rounded-xl border border-white/10 bg-black/40 p-2">
+        <p>{log.event} · {log.status}</p>
+        <p className="text-zinc-400">{log.phone} · {log.roleTarget}</p>
+        {log.error ? <p className="text-red-300">{log.error}</p> : null}
+      </div>
+    </div>
+  );
+}
+
 export function AdminNotificationsPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [logs, setLogs] = useState<WhatsAppLog[]>([]);
+    const shouldVirtualize = logs.length > 100;
   const [error, setError] = useState<string | null>(null);
   const [remindersInput, setRemindersInput] = useState('120,1440');
 
@@ -214,13 +233,25 @@ export function AdminNotificationsPage() {
       <div className="app-card">
         <h3 className="text-sm font-semibold">Logs WhatsApp</h3>
         <div className="mt-3 space-y-2 text-xs">
-          {logs.slice(0, 20).map((log, index) => (
-            <div key={`${log.event}-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-2">
-              <p>{log.event} · {log.status}</p>
-              <p className="text-zinc-400">{log.phone} · {log.roleTarget}</p>
-              {log.error ? <p className="text-red-300">{log.error}</p> : null}
-            </div>
-          ))}
+          {shouldVirtualize ? (
+            <FixedSizeList
+              height={360}
+              itemCount={logs.length}
+              itemSize={74}
+              width="100%"
+              itemData={{ logs }}
+            >
+              {LogRow}
+            </FixedSizeList>
+          ) : (
+            logs.map((log, index) => (
+              <div key={`${log.event}-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-2">
+                <p>{log.event} · {log.status}</p>
+                <p className="text-zinc-400">{log.phone} · {log.roleTarget}</p>
+                {log.error ? <p className="text-red-300">{log.error}</p> : null}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>

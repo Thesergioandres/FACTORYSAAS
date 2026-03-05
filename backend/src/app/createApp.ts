@@ -1,7 +1,9 @@
 import express, { type Express } from 'express';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
@@ -11,6 +13,7 @@ import { authenticateJwt } from '../shared/interfaces/http/middlewares/authentic
 import { requireRoles } from '../shared/interfaces/http/middlewares/requireRoles';
 import { requireApproved } from '../shared/interfaces/http/middlewares/requireApproved';
 import { createPlanGatekeeper } from '../shared/interfaces/http/middlewares/planGatekeeper';
+import { auditLogger } from '../shared/interfaces/http/middlewares/auditLogger';
 import { createAuthModule } from '../modules/auth/module';
 import { createUsersModule } from '../modules/users/module';
 import { createServicesModule } from '../modules/services/module';
@@ -163,6 +166,7 @@ export function createApp({
   });
 
   app.use(helmet());
+  app.use(compression());
   app.use(
     pinoHttp({
       logger,
@@ -193,6 +197,7 @@ export function createApp({
     })
   );
   app.use(express.json());
+  app.use(auditLogger());
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
     setHeaders(res) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -224,6 +229,14 @@ export function createApp({
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/inventory', inventoryRoutes);
   app.use('/api/upload', uploadRoutes);
+
+  const publicDir = path.join(process.cwd(), 'public');
+  if (env.nodeEnv === 'production' && fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(publicDir, 'index.html'));
+    });
+  }
 
   app.use((_req, res) => {
     res.status(404).json({ message: 'Recurso no encontrado' });
