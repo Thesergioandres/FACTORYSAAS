@@ -11,8 +11,8 @@ type AppointmentHistoryDocument = {
   nextStartAt?: Date | null;
   prevEndAt?: Date | null;
   nextEndAt?: Date | null;
-  prevBarberId?: string | null;
-  nextBarberId?: string | null;
+  prevStaffId?: string | null;
+  nextStaffId?: string | null;
   createdAt: Date;
 };
 
@@ -28,8 +28,8 @@ const appointmentHistorySchema = new mongoose.Schema<AppointmentHistoryDocument>
     nextStartAt: { type: Date, default: null },
     prevEndAt: { type: Date, default: null },
     nextEndAt: { type: Date, default: null },
-    prevBarberId: { type: String, default: null },
-    nextBarberId: { type: String, default: null }
+    prevStaffId: { type: String, default: null },
+    nextStaffId: { type: String, default: null }
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
 );

@@ -27,7 +27,7 @@ type Plan = {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
 };
@@ -37,6 +37,8 @@ type Tenant = {
   name: string;
   slug: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   planId: string;
   planName?: string;
   status: string;
@@ -101,7 +103,7 @@ type Appointment = {
   tenantId: string;
   branchId: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: string;
   endAt: string;
@@ -134,8 +136,8 @@ export const database: {
   branches: Branch[];
   services: Service[];
   inventory: Product[];
-  barberSchedules: Array<Record<string, unknown>>;
-  barberBlocks: Array<Record<string, unknown>>;
+  staffSchedules: Array<Record<string, unknown>>;
+  staffBlocks: Array<Record<string, unknown>>;
   appointments: Appointment[];
   appointmentHistory: Array<Record<string, unknown>>;
   whatsappLogs: Array<Record<string, unknown>>;
@@ -147,7 +149,7 @@ export const database: {
       name: 'Trial',
       price: 0,
       maxBranches: 1,
-      maxBarbers: 2,
+      maxStaff: 2,
       maxMonthlyAppointments: 80,
       features: ['reports']
     },
@@ -156,7 +158,7 @@ export const database: {
       name: 'Pro',
       price: 49,
       maxBranches: 5,
-      maxBarbers: 15,
+      maxStaff: 15,
       maxMonthlyAppointments: 1000,
       features: ['reports', 'whatsapp_custom']
     }
@@ -164,9 +166,11 @@ export const database: {
   tenants: [
     {
       id: 'default_tenant',
-      name: 'Barberia Noir',
-      slug: 'noir',
-      subdomain: 'noir',
+      name: 'Essence Factory',
+      slug: 'essence',
+      subdomain: 'essence',
+      verticalSlug: 'default',
+      activeModules: [],
       planId: 'plan_pro',
       planName: 'Pro',
       status: 'active',
@@ -224,7 +228,7 @@ export const database: {
     {
       id: randomUUID(),
       name: 'God Root',
-      email: 'god@barberia.com',
+      email: 'god@factorysaas.com',
       phone: '+573000000000',
       passwordHash: bcrypt.hashSync('god123', 10),
       role: UserRole.GOD,
@@ -239,7 +243,7 @@ export const database: {
     {
       id: randomUUID(),
       name: 'Administrador',
-      email: 'admin@barberia.com',
+      email: 'admin@factorysaas.com',
       phone: '+573000000001',
       passwordHash: bcrypt.hashSync('admin123', 10),
       role: UserRole.ADMIN,
@@ -253,11 +257,11 @@ export const database: {
     },
     {
       id: randomUUID(),
-      name: 'Barbero Demo',
-      email: 'barbero@barberia.com',
+      name: 'Staff Demo',
+      email: 'staff@factorysaas.com',
       phone: '+573000000002',
-      passwordHash: bcrypt.hashSync('barbero123', 10),
-      role: UserRole.BARBER,
+      passwordHash: bcrypt.hashSync('staff123', 10),
+      role: UserRole.STAFF,
       active: true,
       whatsappConsent: true,
       approved: true,
@@ -269,7 +273,7 @@ export const database: {
     {
       id: randomUUID(),
       name: 'Cliente Demo',
-      email: 'cliente@barberia.com',
+      email: 'cliente@factorysaas.com',
       phone: '+573000000003',
       passwordHash: bcrypt.hashSync('cliente123', 10),
       role: UserRole.CLIENT,
@@ -303,15 +307,15 @@ export const database: {
     }
   ],
   inventory: [],
-  barberSchedules: [],
-  barberBlocks: [],
+  staffSchedules: [],
+  staffBlocks: [],
   appointments: [
     {
       id: randomUUID(),
       tenantId: 'default_tenant',
       branchId: 'default_branch',
       clientId: '',
-      barberId: '',
+      staffId: '',
       serviceId: '',
       startAt: tomorrowAt10.toISOString(),
       endAt: new Date(tomorrowAt10.getTime() + 30 * 60 * 1000).toISOString(),
@@ -355,14 +359,14 @@ export const database: {
 
 function hydrateSeedRelations() {
   const admin = database.users.find((user) => user.role === UserRole.ADMIN);
-  const barber = database.users.find((user) => user.role === UserRole.BARBER);
+  const staff = database.users.find((user) => user.role === UserRole.STAFF);
   const client = database.users.find((user) => user.role === UserRole.CLIENT);
   const service = database.services[0];
   const firstAppointment = database.appointments[0];
 
-  if (admin && barber && client && service && firstAppointment) {
+  if (admin && staff && client && service && firstAppointment) {
     firstAppointment.clientId = client.id;
-    firstAppointment.barberId = barber.id;
+    firstAppointment.staffId = staff.id;
     firstAppointment.serviceId = service.id;
   }
 }

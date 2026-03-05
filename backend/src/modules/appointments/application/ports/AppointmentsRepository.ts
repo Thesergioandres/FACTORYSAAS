@@ -4,7 +4,7 @@ export type CreateAppointmentInput = {
   tenantId: string;
   branchId: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: string;
   endAt: string;
@@ -17,9 +17,9 @@ export type UpdateAppointmentInput = Partial<CreateAppointmentInput> & {
 };
 
 export interface AppointmentsRepository {
-  list(tenantId: string, filters?: { clientId?: string; barberId?: string; startFrom?: Date; startTo?: Date }): Promise<AppointmentRecord[]>;
+  list(tenantId: string, filters?: { clientId?: string; staffId?: string; startFrom?: Date; startTo?: Date }): Promise<AppointmentRecord[]>;
   findById(id: string, tenantId: string): Promise<AppointmentRecord | null>;
-  findByBarberInRange(tenantId: string, barberId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]>;
+  findByStaffInRange(tenantId: string, staffId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]>;
   findByClientInRange(tenantId: string, clientId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]>;
   create(input: CreateAppointmentInput): Promise<AppointmentRecord>;
   update(id: string, input: UpdateAppointmentInput): Promise<AppointmentRecord | null>;

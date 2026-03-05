@@ -14,8 +14,8 @@ function mapHistory(document: {
   nextStartAt?: Date | null;
   prevEndAt?: Date | null;
   nextEndAt?: Date | null;
-  prevBarberId?: string | null;
-  nextBarberId?: string | null;
+  prevStaffId?: string | null;
+  nextStaffId?: string | null;
   createdAt?: Date;
 } | null): AppointmentHistoryRecord | null {
   if (!document) {
@@ -34,8 +34,8 @@ function mapHistory(document: {
     nextStartAt: document.nextStartAt ? new Date(document.nextStartAt).toISOString() : undefined,
     prevEndAt: document.prevEndAt ? new Date(document.prevEndAt).toISOString() : undefined,
     nextEndAt: document.nextEndAt ? new Date(document.nextEndAt).toISOString() : undefined,
-    prevBarberId: document.prevBarberId ?? undefined,
-    nextBarberId: document.nextBarberId ?? undefined,
+    prevStaffId: document.prevStaffId ?? undefined,
+    nextStaffId: document.nextStaffId ?? undefined,
     createdAt: document.createdAt ? new Date(document.createdAt).toISOString() : new Date().toISOString()
   };
 }
@@ -58,8 +58,8 @@ export class MongoAppointmentHistoryRepository implements AppointmentHistoryRepo
       nextStartAt: input.nextStartAt ? new Date(input.nextStartAt) : null,
       prevEndAt: input.prevEndAt ? new Date(input.prevEndAt) : null,
       nextEndAt: input.nextEndAt ? new Date(input.nextEndAt) : null,
-      prevBarberId: input.prevBarberId ?? null,
-      nextBarberId: input.nextBarberId ?? null
+      prevStaffId: input.prevStaffId ?? null,
+      nextStaffId: input.nextStaffId ?? null
     });
 
     return mapHistory(doc.toObject() as typeof doc & { _id: { toString(): string } }) as AppointmentHistoryRecord;

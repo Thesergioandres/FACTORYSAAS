@@ -51,8 +51,8 @@ export class UpdateAppointmentStatusUseCase {
       return { error: 'Cita no encontrada', statusCode: 404 };
     }
 
-    if (actorRole === 'BARBER' && appointment.barberId !== actorUserId) {
-      return { error: 'No puedes modificar una cita de otro barbero', statusCode: 403 };
+    if (actorRole === 'STAFF' && appointment.staffId !== actorUserId) {
+      return { error: 'No puedes modificar una cita de otro staff', statusCode: 403 };
     }
 
     if (!canTransition(appointment.status, normalizedStatus)) {
@@ -75,12 +75,12 @@ export class UpdateAppointmentStatusUseCase {
 
     const users = await this.deps.usersRepository.list(tenantId);
     const client = users.find((item) => item.id === appointment.clientId);
-    const barber = users.find((item) => item.id === appointment.barberId);
+    const staff = users.find((item) => item.id === appointment.staffId);
 
     await this.deps.notificationsService.emitEvent({
       event: normalizedStatus === AppointmentState.CONFIRMADA ? 'APPOINTMENT_CONFIRMED' : 'APPOINTMENT_UPDATED',
       appointment,
-      recipients: [client, barber].filter(Boolean) as UserRecord[]
+      recipients: [client, staff].filter(Boolean) as UserRecord[]
     });
 
     return { appointment };

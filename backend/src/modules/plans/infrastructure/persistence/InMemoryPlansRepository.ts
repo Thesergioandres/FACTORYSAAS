@@ -33,7 +33,7 @@ export class InMemoryPlansRepository implements PlansRepository {
 
     if (input.price !== undefined) plan.price = input.price;
     if (input.maxBranches !== undefined) plan.maxBranches = input.maxBranches;
-    if (input.maxBarbers !== undefined) plan.maxBarbers = input.maxBarbers;
+    if (input.maxStaff !== undefined) plan.maxStaff = input.maxStaff;
     if (input.maxMonthlyAppointments !== undefined) plan.maxMonthlyAppointments = input.maxMonthlyAppointments;
     if (input.features !== undefined) plan.features = [...input.features];
 

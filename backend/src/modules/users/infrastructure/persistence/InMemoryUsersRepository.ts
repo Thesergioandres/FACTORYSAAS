@@ -45,7 +45,7 @@ export class InMemoryUsersRepository implements UsersRepository {
       tenantId: tenantId ?? null,
       branchIds: branchIds ?? [],
       createdAt: new Date().toISOString(),
-      commissionRate: role === 'BARBER' ? 0.3 : 0
+      commissionRate: role === 'STAFF' ? 0.3 : 0
     };
 
     database.users.push(user as unknown as typeof database.users[0]);

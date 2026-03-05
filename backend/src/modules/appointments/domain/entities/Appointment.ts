@@ -1,6 +1,6 @@
 import { AppointmentStatus } from '../value-objects/AppointmentStatus';
 import { AppointmentId } from '../value-objects/AppointmentId';
-import { BarberId } from '../value-objects/BarberId';
+import { StaffId } from '../value-objects/StaffId';
 import { ClientId } from '../value-objects/ClientId';
 import { ServiceId } from '../value-objects/ServiceId';
 import { TimeRange } from '../value-objects/TimeRange';
@@ -16,7 +16,7 @@ export class Appointment {
     readonly id: AppointmentId,
     readonly tenantId: string,
     readonly branchId: string,
-    readonly barberId: BarberId,
+    readonly staffId: StaffId,
     readonly clientId: ClientId,
     readonly serviceId: ServiceId,
     private timeRange: TimeRange,
@@ -31,7 +31,7 @@ export class Appointment {
     id: AppointmentId;
     tenantId: string;
     branchId: string;
-    barberId: BarberId;
+    staffId: StaffId;
     clientId: ClientId;
     serviceId: ServiceId;
     timeRange: TimeRange;
@@ -41,7 +41,7 @@ export class Appointment {
       input.id,
       input.tenantId,
       input.branchId,
-      input.barberId,
+      input.staffId,
       input.clientId,
       input.serviceId,
       input.timeRange,

@@ -3,7 +3,7 @@ export type PlanEntity = {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
 };

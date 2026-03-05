@@ -1,14 +1,14 @@
 import { AppointmentId } from '../value-objects/AppointmentId';
-import { BarberId } from '../value-objects/BarberId';
+import { StaffId } from '../value-objects/StaffId';
 import { ServiceId } from '../value-objects/ServiceId';
 
 export interface IWhatsAppService {
   sendAppointmentCreated(input: {
     appointmentId: AppointmentId;
-    barberId: BarberId;
+    staffId: StaffId;
     serviceId: ServiceId;
     clientPhone: string;
-    barberPhone: string;
+    staffPhone: string;
     startAt: Date;
   }): Promise<void>;
 }

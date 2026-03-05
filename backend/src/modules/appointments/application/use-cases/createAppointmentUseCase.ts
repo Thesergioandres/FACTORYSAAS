@@ -38,8 +38,8 @@ type UsersRepository = {
 };
 
 type AvailabilityRepository = {
-  listSchedules(barberId: string): Promise<ScheduleRecord[]>;
-  listBlocks(barberId: string): Promise<BlockRecord[]>;
+  listSchedules(staffId: string): Promise<ScheduleRecord[]>;
+  listBlocks(staffId: string): Promise<BlockRecord[]>;
 };
 
 type NotificationsService = {
@@ -68,19 +68,19 @@ export class CreateAppointmentUseCase {
     }
   ) {}
 
-  async execute({ tenantId, branchId, clientId, barberId, serviceId, startAt, notes, actorRole, actorUserId }: {
+  async execute({ tenantId, branchId, clientId, staffId, serviceId, startAt, notes, actorRole, actorUserId }: {
     tenantId: string;
     branchId: string;
     clientId?: string;
-    barberId?: string;
+    staffId?: string;
     serviceId?: string;
     startAt?: string;
     notes?: string;
     actorRole?: string;
     actorUserId?: string;
   }): Promise<{ appointment: AppointmentRecord } | { error: string; statusCode: number; paymentUrl?: string }> {
-    if (!tenantId || !branchId || !clientId || !barberId || !serviceId || !startAt) {
-      return { error: 'tenantId, branchId, clientId, barberId, serviceId y startAt son requeridos', statusCode: 400 };
+    if (!tenantId || !branchId || !clientId || !staffId || !serviceId || !startAt) {
+      return { error: 'tenantId, branchId, clientId, staffId, serviceId y startAt son requeridos', statusCode: 400 };
     }
 
     const service = await this.deps.servicesRepository.findById(serviceId, tenantId);
@@ -90,9 +90,9 @@ export class CreateAppointmentUseCase {
 
     const users = await this.deps.usersRepository.list(tenantId);
     const client = users.find((user) => user.id === clientId);
-    const barber = users.find((user) => user.id === barberId);
-    if (!client || !barber) {
-      return { error: 'Cliente o barbero inválido', statusCode: 404 };
+    const staff = users.find((user) => user.id === staffId);
+    if (!client || !staff) {
+      return { error: 'Cliente o staff invalido', statusCode: 404 };
     }
 
     const startDate = new Date(startAt);
@@ -124,12 +124,12 @@ export class CreateAppointmentUseCase {
     const bufferTimeMinutes = tenant.config.bufferTimeMinutes || 0;
     const endDate = new Date(startDate.getTime() + (service.durationMinutes + bufferTimeMinutes) * 60 * 1000);
 
-    const schedules = await this.deps.availabilityRepository.listSchedules(barberId);
+    const schedules = await this.deps.availabilityRepository.listSchedules(staffId);
     if (schedules.length > 0) {
       const day = startDate.getDay();
       const schedule = schedules.find((item) => item.dayOfWeek === day);
       if (!schedule) {
-        return { error: 'Barbero no disponible para ese día', statusCode: 400 };
+        return { error: 'Staff no disponible para ese dia', statusCode: 400 };
       }
 
       const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
@@ -140,11 +140,11 @@ export class CreateAppointmentUseCase {
       const scheduleEnd = eh * 60 + em;
 
       if (startMinutes < scheduleStart || endMinutes > scheduleEnd) {
-        return { error: 'Cita fuera del horario del barbero', statusCode: 400 };
+        return { error: 'Cita fuera del horario del staff', statusCode: 400 };
       }
     }
 
-    const blocks = await this.deps.availabilityRepository.listBlocks(barberId);
+    const blocks = await this.deps.availabilityRepository.listBlocks(staffId);
     const hasBlockConflict = blocks.some((block) => {
       const blockStart = new Date(block.startAt);
       const blockEnd = new Date(block.endAt);
@@ -152,12 +152,12 @@ export class CreateAppointmentUseCase {
     });
 
     if (hasBlockConflict) {
-      return { error: 'Horario bloqueado por el barbero', statusCode: 409 };
+      return { error: 'Horario bloqueado por el staff', statusCode: 409 };
     }
 
-    const overlaps = await this.deps.appointmentsRepository.findByBarberInRange(tenantId, barberId, startDate, endDate);
+    const overlaps = await this.deps.appointmentsRepository.findByStaffInRange(tenantId, staffId, startDate, endDate);
     if (overlaps.length > 0) {
-      return { error: 'El barbero ya tiene cita en ese rango', statusCode: 409 };
+      return { error: 'El staff ya tiene cita en ese rango', statusCode: 409 };
     }
 
     const clientOverlaps = await this.deps.appointmentsRepository.findByClientInRange(tenantId, clientId, startDate, endDate);
@@ -169,7 +169,7 @@ export class CreateAppointmentUseCase {
       tenantId,
       branchId,
       clientId,
-      barberId,
+      staffId,
       serviceId,
       startAt: startDate.toISOString(),
       endAt: endDate.toISOString(),
@@ -185,13 +185,13 @@ export class CreateAppointmentUseCase {
       nextStatus: appointment.status,
       nextStartAt: appointment.startAt,
       nextEndAt: appointment.endAt,
-      nextBarberId: appointment.barberId
+      nextStaffId: appointment.staffId
     });
 
     await this.deps.notificationsService.emitEvent({
       event: 'APPOINTMENT_CREATED',
       appointment,
-      recipients: [client, barber]
+      recipients: [client, staff]
     });
 
     return { appointment };

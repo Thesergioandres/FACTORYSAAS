@@ -5,7 +5,7 @@ type UserDocument = {
   email: string;
   phone: string;
   passwordHash: string;
-  role: 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'ADMIN' | 'STAFF' | 'CLIENT' | 'GOD';
   active: boolean;
   whatsappConsent: boolean;
   approved: boolean;
@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
     email: { type: String, required: true, unique: true, index: true },
     phone: { type: String, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['GOD', 'ADMIN', 'BARBER', 'CLIENT'], required: true, index: true },
+    role: { type: String, enum: ['GOD', 'ADMIN', 'STAFF', 'CLIENT'], required: true, index: true },
     active: { type: Boolean, default: true },
     whatsappConsent: { type: Boolean, default: false },
     approved: { type: Boolean, default: false },

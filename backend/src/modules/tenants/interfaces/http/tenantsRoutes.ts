@@ -56,13 +56,15 @@ export function createTenantsRoutes(deps: {
   router.get('/slug/:slug', async (req: Request, res: Response) => {
     const tenant = await deps.tenantsRepository.findBySlug(req.params.slug);
     if (!tenant) {
-      return res.status(404).json({ message: 'Barbería no encontrada' });
+      return res.status(404).json({ message: 'Tenant no encontrado' });
     }
     return res.json({
       id: tenant.id,
       name: tenant.name,
       slug: tenant.slug,
       subdomain: tenant.subdomain,
+      verticalSlug: tenant.verticalSlug,
+      activeModules: tenant.activeModules,
       customColors: tenant.customColors,
       logoUrl: tenant.logoUrl,
       status: tenant.status
@@ -72,7 +74,7 @@ export function createTenantsRoutes(deps: {
   router.get('/:id', async (req: Request, res: Response) => {
     const tenant = await deps.tenantsRepository.findById(req.params.id);
     if (!tenant) {
-      return res.status(404).json({ message: 'Barbería no encontrada' });
+      return res.status(404).json({ message: 'Tenant no encontrado' });
     }
     return res.json(tenant);
   });

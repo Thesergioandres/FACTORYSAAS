@@ -38,7 +38,7 @@ export const env: Env = {
   nodeEnv,
   logLevel: process.env.LOG_LEVEL || 'info',
   port: Number(process.env.PORT || 4000),
-  mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/barberia',
+  mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/factorysaas',
   useMongo: (process.env.USE_MONGO || 'true') === 'true',
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   enableJobs: (process.env.ENABLE_JOBS || defaultEnableJobs) === 'true',

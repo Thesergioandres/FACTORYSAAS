@@ -7,7 +7,7 @@ function mapAppointment(document: {
   tenantId: string;
   branchId: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: Date;
   endAt: Date;
@@ -24,7 +24,7 @@ function mapAppointment(document: {
     tenantId: document.tenantId,
     branchId: document.branchId,
     clientId: document.clientId,
-    barberId: document.barberId,
+    staffId: document.staffId,
     serviceId: document.serviceId,
     startAt: new Date(document.startAt).toISOString(),
     endAt: new Date(document.endAt).toISOString(),
@@ -35,10 +35,10 @@ function mapAppointment(document: {
 }
 
 export class MongoAppointmentsRepository implements AppointmentsRepository {
-  async list(tenantId: string, filters: { clientId?: string; barberId?: string; startFrom?: Date; startTo?: Date } = {}): Promise<AppointmentRecord[]> {
+  async list(tenantId: string, filters: { clientId?: string; staffId?: string; startFrom?: Date; startTo?: Date } = {}): Promise<AppointmentRecord[]> {
     const query: Record<string, unknown> = { tenantId };
     if (filters.clientId) query.clientId = filters.clientId;
-    if (filters.barberId) query.barberId = filters.barberId;
+    if (filters.staffId) query.staffId = filters.staffId;
     if (filters.startFrom || filters.startTo) {
       query.startAt = {};
       if (filters.startFrom) (query.startAt as Record<string, unknown>).$gte = filters.startFrom;
@@ -54,10 +54,10 @@ export class MongoAppointmentsRepository implements AppointmentsRepository {
     return mapAppointment(doc as typeof doc & { _id: { toString(): string } });
   }
 
-  async findByBarberInRange(tenantId: string, barberId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]> {
+  async findByStaffInRange(tenantId: string, staffId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]> {
     const query: Record<string, unknown> = {
       tenantId,
-      barberId,
+      staffId,
       status: { $ne: 'CANCELADA' },
       startAt: { $lt: endAt },
       endAt: { $gt: startAt }
@@ -93,7 +93,7 @@ export class MongoAppointmentsRepository implements AppointmentsRepository {
       tenantId: payload.tenantId,
       branchId: payload.branchId,
       clientId: payload.clientId,
-      barberId: payload.barberId,
+      staffId: payload.staffId,
       serviceId: payload.serviceId,
       startAt: new Date(payload.startAt),
       endAt: new Date(payload.endAt),

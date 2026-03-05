@@ -7,7 +7,7 @@ function makeAppointmentsRepo() {
   const appointment = {
     id: 'apt-1',
     clientId: 'client-1',
-    barberId: 'barber-1',
+    staffId: 'staff-1',
     serviceId: 'service-1',
     startAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
     endAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
@@ -21,7 +21,7 @@ function makeAppointmentsRepo() {
     async update() {
       return { ...appointment };
     },
-    async findByBarberInRange() {
+    async findByStaffInRange() {
       return [];
     },
     async findByClientInRange() {
@@ -34,7 +34,7 @@ const usersRepository = {
   async list() {
     return [
       { id: 'client-1', role: 'CLIENT', phone: '+573000000003', whatsappConsent: true },
-      { id: 'barber-1', role: 'BARBER', phone: '+573000000002', whatsappConsent: true }
+      { id: 'staff-1', role: 'STAFF', phone: '+573000000002', whatsappConsent: true }
     ];
   }
 };
@@ -43,7 +43,7 @@ const notificationsService = {
   async emitEvent() {}
 };
 
-test('barbero no puede cambiar estado de cita ajena', async () => {
+test('staff no puede cambiar estado de cita ajena', async () => {
   const useCase = new UpdateAppointmentStatusUseCase({
     appointmentsRepository: makeAppointmentsRepo(),
     usersRepository,
@@ -53,8 +53,8 @@ test('barbero no puede cambiar estado de cita ajena', async () => {
   const result = await useCase.execute({
     appointmentId: 'apt-1',
     nextStatus: 'COMPLETADA',
-    actorRole: 'BARBER',
-    actorUserId: 'barber-2'
+    actorRole: 'STAFF',
+    actorUserId: 'staff-2'
   });
 
   assert.equal(result.statusCode, 403);

@@ -88,7 +88,7 @@ export class MongoUsersRepository implements UsersRepository {
       approved: user.approved ?? true,
       tenantId: user.tenantId ?? null,
       branchIds: user.branchIds ?? [],
-      commissionRate: user.role === 'BARBER' ? 0.3 : 0
+      commissionRate: user.role === 'STAFF' ? 0.3 : 0
     });
 
     return mapUser(doc.toObject() as typeof doc & { _id: { toString(): string } }) as UserRecord;

@@ -1,29 +1,29 @@
 import { Router, type Request, type Response } from 'express';
-import type { BarberAvailabilityRepository } from '../../application/ports/BarberAvailabilityRepository';
+import type { StaffAvailabilityRepository } from '../../application/ports/StaffAvailabilityRepository';
 import type { authenticateJwt } from '../../../../shared/interfaces/http/middlewares/authenticateJwt';
 import type { requireRoles } from '../../../../shared/interfaces/http/middlewares/requireRoles';
 import type { requireApproved } from '../../../../shared/interfaces/http/middlewares/requireApproved';
 
-export function createBarbersRoutes({
+export function createStaffRoutes({
   availabilityRepository,
   authenticateJwt: authMiddleware,
   requireApproved: requireApprovedMiddleware,
   requireRoles: requireRolesMiddleware
 }: {
-  availabilityRepository: BarberAvailabilityRepository;
+  availabilityRepository: StaffAvailabilityRepository;
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireApproved: ReturnType<typeof requireApproved>;
   requireRoles: typeof requireRoles;
 }) {
   const router = Router();
 
-  router.get('/:barberId/schedules', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER', 'CLIENT'), async (req: Request, res: Response) => {
-    const schedules = await availabilityRepository.listSchedules(req.params.barberId);
+  router.get('/:staffId/schedules', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF', 'CLIENT'), async (req: Request, res: Response) => {
+    const schedules = await availabilityRepository.listSchedules(req.params.staffId);
     res.json(schedules);
   });
 
-  router.post('/:barberId/schedules', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER'), async (req: Request, res: Response) => {
-    if (req.auth?.role === 'BARBER' && req.auth?.sub !== req.params.barberId) {
+  router.post('/:staffId/schedules', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+    if (req.auth?.role === 'STAFF' && req.auth?.sub !== req.params.staffId) {
       return res.status(403).json({ message: 'Solo puedes configurar tu propia agenda' });
     }
 
@@ -38,7 +38,7 @@ export function createBarbersRoutes({
     }
 
     const schedule = await availabilityRepository.upsertSchedule({
-      barberId: req.params.barberId,
+      staffId: req.params.staffId,
       dayOfWeek,
       startTime,
       endTime
@@ -47,17 +47,17 @@ export function createBarbersRoutes({
     return res.status(201).json(schedule);
   });
 
-  router.get('/:barberId/blocks', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER'), async (req: Request, res: Response) => {
-    if (req.auth?.role === 'BARBER' && req.auth?.sub !== req.params.barberId) {
+  router.get('/:staffId/blocks', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+    if (req.auth?.role === 'STAFF' && req.auth?.sub !== req.params.staffId) {
       return res.status(403).json({ message: 'Solo puedes consultar tus propios bloqueos' });
     }
 
-    const blocks = await availabilityRepository.listBlocks(req.params.barberId);
+    const blocks = await availabilityRepository.listBlocks(req.params.staffId);
     res.json(blocks);
   });
 
-  router.post('/:barberId/blocks', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER'), async (req: Request, res: Response) => {
-    if (req.auth?.role === 'BARBER' && req.auth?.sub !== req.params.barberId) {
+  router.post('/:staffId/blocks', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+    if (req.auth?.role === 'STAFF' && req.auth?.sub !== req.params.staffId) {
       return res.status(403).json({ message: 'Solo puedes crear bloqueos sobre tu agenda' });
     }
 
@@ -72,7 +72,7 @@ export function createBarbersRoutes({
     }
 
     const block = await availabilityRepository.addBlock({
-      barberId: req.params.barberId,
+      staffId: req.params.staffId,
       startAt,
       endAt,
       reason

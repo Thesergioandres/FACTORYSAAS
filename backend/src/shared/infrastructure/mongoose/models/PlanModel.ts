@@ -4,7 +4,7 @@ type PlanDocument = {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
   createdAt: Date;
@@ -16,7 +16,7 @@ const planSchema = new mongoose.Schema<PlanDocument>(
     name: { type: String, required: true, unique: true, index: true },
     price: { type: Number, required: true },
     maxBranches: { type: Number, required: true },
-    maxBarbers: { type: Number, required: true },
+    maxStaff: { type: Number, required: true },
     maxMonthlyAppointments: { type: Number, required: true },
     features: { type: [String], default: [] }
   },

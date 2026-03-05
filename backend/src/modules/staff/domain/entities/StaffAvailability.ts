@@ -1,14 +1,14 @@
-export type BarberSchedule = {
+export type StaffSchedule = {
   id: string;
-  barberId: string;
+  staffId: string;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
 };
 
-export type BarberBlock = {
+export type StaffBlock = {
   id: string;
-  barberId: string;
+  staffId: string;
   startAt: string;
   endAt: string;
   reason: string;

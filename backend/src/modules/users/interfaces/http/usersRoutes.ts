@@ -35,19 +35,19 @@ export function createUsersRoutes({
   requireRoles: typeof requireRoles;
 }) {
   const router = Router();
-  const requireBarberSlot = planGatekeeper?.requireBarberSlot || ((_req: Request, _res: Response, next) => next());
+  const requireStaffSlot = planGatekeeper?.requireStaffSlot || ((_req: Request, _res: Response, next) => next());
 
-  router.get('/public/barbers', async (_req: Request, res: Response) => {
-    const barbers = await usersRepository.list('BARBER');
-    const safeBarbers = barbers
-      .filter((barber) => barber.active !== false && barber.approved !== false)
-      .map((barber) => ({
-        id: barber.id,
-        name: barber.name,
-        role: barber.role
+  router.get('/public/staff', async (_req: Request, res: Response) => {
+    const staff = await usersRepository.list('STAFF');
+    const safeStaff = staff
+      .filter((member) => member.active !== false && member.approved !== false)
+      .map((member) => ({
+        id: member.id,
+        name: member.name,
+        role: member.role
       }));
 
-    res.json(safeBarbers);
+    res.json(safeStaff);
   });
 
   router.get('/', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
@@ -98,7 +98,7 @@ export function createUsersRoutes({
     '/admin',
     authMiddleware,
     requireRolesMiddleware('ADMIN'),
-    requireBarberSlot,
+    requireStaffSlot,
     async (req: Request, res: Response) => {
       const tenantId = req.auth?.tenantId;
       if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
@@ -181,7 +181,7 @@ export function createUsersRoutes({
       return res.status(400).json({ message: 'phone debe estar en formato E.164' });
     }
 
-    if (payload.role && !['GOD', 'ADMIN', 'BARBER', 'CLIENT'].includes(payload.role)) {
+    if (payload.role && !['GOD', 'ADMIN', 'STAFF', 'CLIENT'].includes(payload.role)) {
       return res.status(400).json({ message: 'role inválido' });
     }
 
@@ -201,7 +201,7 @@ export function createUsersRoutes({
       name: payload.name,
       email: payload.email,
       phone: payload.phone,
-      role: payload.role as 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT' | undefined,
+      role: payload.role as 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT' | undefined,
       active: payload.active,
       whatsappConsent: payload.whatsappConsent,
       passwordHash,

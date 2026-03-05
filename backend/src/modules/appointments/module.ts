@@ -26,7 +26,7 @@ export function createAppointmentsModule({
   servicesRepository: { findById(id: string, tenantId: string): Promise<{ durationMinutes: number; active: boolean } | null> };
   usersRepository: { list(tenantId: string, role?: string): Promise<Array<{ id: string; role: string; phone?: string; whatsappConsent?: boolean }>> };
   tenantsRepository: { findById(id: string): Promise<{ id: string; config: { bufferTimeMinutes: number; maxNoShowsBeforePayment: number; requirePaymentForNoShows: boolean } } | null> };
-  availabilityRepository: { listSchedules(barberId: string): Promise<Array<{ dayOfWeek: number; startTime: string; endTime: string }>>; listBlocks(barberId: string): Promise<Array<{ startAt: string; endAt: string }>> };
+  availabilityRepository: { listSchedules(staffId: string): Promise<Array<{ dayOfWeek: number; startTime: string; endTime: string }>>; listBlocks(staffId: string): Promise<Array<{ startAt: string; endAt: string }>> };
   notificationsService: { emitEvent(input: { event: string; appointment: { id: string; startAt: string; status?: string; tenantId: string }; recipients: Array<{ id: string; role: string; phone?: string; whatsappConsent?: boolean }> }): Promise<void> };
   useMongo?: boolean;
   authenticateJwt: ReturnType<typeof authenticateJwt>;

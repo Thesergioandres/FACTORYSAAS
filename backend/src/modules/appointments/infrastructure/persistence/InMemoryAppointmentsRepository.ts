@@ -4,15 +4,15 @@ import type { AppointmentsRepository, CreateAppointmentInput, UpdateAppointmentI
 import type { AppointmentRecord } from '../../domain/entities/AppointmentRecord';
 
 export class InMemoryAppointmentsRepository implements AppointmentsRepository {
-  async list(tenantId: string, filters: { clientId?: string; barberId?: string; startFrom?: Date; startTo?: Date } = {}): Promise<AppointmentRecord[]> {
+  async list(tenantId: string, filters: { clientId?: string; staffId?: string; startFrom?: Date; startTo?: Date } = {}): Promise<AppointmentRecord[]> {
     let results = database.appointments.filter(a => a.tenantId === tenantId);
 
     if (filters.clientId) {
       results = results.filter((appointment) => appointment.clientId === filters.clientId);
     }
 
-    if (filters.barberId) {
-      results = results.filter((appointment) => appointment.barberId === filters.barberId);
+    if (filters.staffId) {
+      results = results.filter((appointment) => appointment.staffId === filters.staffId);
     }
 
     if (filters.startFrom || filters.startTo) {
@@ -34,9 +34,9 @@ export class InMemoryAppointmentsRepository implements AppointmentsRepository {
     return app?.tenantId === tenantId ? app : null;
   }
 
-  async findByBarberInRange(tenantId: string, barberId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]> {
+  async findByStaffInRange(tenantId: string, staffId: string, startAt: Date, endAt: Date, excludeId?: string): Promise<AppointmentRecord[]> {
     return database.appointments.filter((appointment) => {
-      if (appointment.tenantId !== tenantId || appointment.barberId !== barberId) {
+      if (appointment.tenantId !== tenantId || appointment.staffId !== staffId) {
         return false;
       }
 
@@ -80,7 +80,7 @@ export class InMemoryAppointmentsRepository implements AppointmentsRepository {
       tenantId: payload.tenantId,
       branchId: payload.branchId,
       clientId: payload.clientId,
-      barberId: payload.barberId,
+      staffId: payload.staffId,
       serviceId: payload.serviceId,
       startAt: payload.startAt,
       endAt: payload.endAt,
@@ -100,7 +100,7 @@ export class InMemoryAppointmentsRepository implements AppointmentsRepository {
     }
 
     if (partial.clientId !== undefined) appointment.clientId = partial.clientId;
-    if (partial.barberId !== undefined) appointment.barberId = partial.barberId;
+    if (partial.staffId !== undefined) appointment.staffId = partial.staffId;
     if (partial.serviceId !== undefined) appointment.serviceId = partial.serviceId;
     if (partial.startAt !== undefined) appointment.startAt = String(partial.startAt);
     if (partial.endAt !== undefined) appointment.endAt = String(partial.endAt);

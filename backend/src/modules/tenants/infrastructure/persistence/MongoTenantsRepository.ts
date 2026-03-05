@@ -7,6 +7,8 @@ function mapTenant(document: {
   name: string;
   slug: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   planId: string;
   status: string;
   customColors?: { primary?: string; secondary?: string };
@@ -20,6 +22,8 @@ function mapTenant(document: {
     name: document.name,
     slug: document.slug,
     subdomain: document.subdomain,
+    verticalSlug: document.verticalSlug,
+    activeModules: document.activeModules || [],
     planId: document.planId,
     planName,
     status: document.status,

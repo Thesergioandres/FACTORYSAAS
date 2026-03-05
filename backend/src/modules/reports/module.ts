@@ -11,7 +11,7 @@ export function createReportsModule({
 }: {
   usersRepository: { list(tenantId: string, role?: string): Promise<Array<{ id: string; role: string; name?: string; commissionRate?: number }>> };
   servicesRepository: { list(tenantId: string, options?: { onlyActive?: boolean }): Promise<Array<{ id: string; price?: number }>> };
-  appointmentsRepository: { list(tenantId: string, filters?: { clientId?: string; barberId?: string }): Promise<Array<{ id: string; status: string; clientId: string; barberId: string; serviceId: string; startAt: string }>> };
+  appointmentsRepository: { list(tenantId: string, filters?: { clientId?: string; staffId?: string }): Promise<Array<{ id: string; status: string; clientId: string; staffId: string; serviceId: string; startAt: string }>> };
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireRoles: typeof requireRoles;
 }) {
@@ -27,12 +27,12 @@ export function createReportsModule({
       return acc;
     }, {});
 
-    const barbersCount = users.filter(u => u.role === 'BARBER').length;
-    const productivity = barbersCount > 0 ? +(appointments.length / barbersCount).toFixed(1) : 0;
+    const staffCount = users.filter(u => u.role === 'STAFF').length;
+    const productivity = staffCount > 0 ? +(appointments.length / staffCount).toFixed(1) : 0;
     
-    // Asumimos un aproximado de 8 citas máximas por barbero al día.
-    const occupancy = barbersCount > 0 
-      ? Math.min(100, Math.round((appointments.length / (barbersCount * 8)) * 100)) + '%'
+    // Asumimos un aproximado de 8 citas maximas por staff al dia.
+    const occupancy = staffCount > 0 
+      ? Math.min(100, Math.round((appointments.length / (staffCount * 8)) * 100)) + '%'
       : '0%';
 
     const clientCounts: Record<string, number> = {};
@@ -54,7 +54,7 @@ export function createReportsModule({
       },
       appointmentsByStatus: byStatus,
       analytics: {
-        productivity: `${productivity} citas / barbero`,
+        productivity: `${productivity} citas / staff`,
         occupancy,
         retention
       }
@@ -75,13 +75,13 @@ export function createReportsModule({
     end.setDate(end.getDate() + 1);
 
     const servicePrices = new Map(services.map((service) => [service.id, Number(service.price || 0)]));
-    const barberMap = new Map(
+    const staffMap = new Map(
       users
-        .filter((user) => user.role === 'BARBER')
+        .filter((user) => user.role === 'STAFF')
         .map((user) => [user.id, user])
     );
 
-    const commissionByBarber: Record<string, { barberId: string; barberName: string; rate: number; total: number; appointments: number }> = {};
+    const commissionByStaff: Record<string, { staffId: string; staffName: string; rate: number; total: number; appointments: number }> = {};
     let grossRevenue = 0;
 
     appointments
@@ -94,28 +94,28 @@ export function createReportsModule({
         const price = servicePrices.get(appointment.serviceId) || 0;
         grossRevenue += price;
 
-        const barber = barberMap.get(appointment.barberId);
-        const rate = barber?.commissionRate ?? 0.3;
-        const key = appointment.barberId;
+        const staff = staffMap.get(appointment.staffId);
+        const rate = staff?.commissionRate ?? 0.3;
+        const key = appointment.staffId;
 
-        if (!commissionByBarber[key]) {
-          commissionByBarber[key] = {
-            barberId: key,
-            barberName: barber?.name || 'Sin nombre',
+        if (!commissionByStaff[key]) {
+          commissionByStaff[key] = {
+            staffId: key,
+            staffName: staff?.name || 'Sin nombre',
             rate,
             total: 0,
             appointments: 0
           };
         }
 
-        commissionByBarber[key].appointments += 1;
-        commissionByBarber[key].total += price * rate;
+        commissionByStaff[key].appointments += 1;
+        commissionByStaff[key].total += price * rate;
       });
 
     return {
       date: start.toISOString().split('T')[0],
       grossRevenue: Number(grossRevenue.toFixed(2)),
-      commissions: Object.values(commissionByBarber).map((item) => ({
+      commissions: Object.values(commissionByStaff).map((item) => ({
         ...item,
         total: Number(item.total.toFixed(2))
       }))
@@ -139,13 +139,13 @@ export function createReportsModule({
     rangeEnd.setDate(rangeEnd.getDate() + 1);
 
     const servicePrices = new Map(services.map((service) => [service.id, Number(service.price || 0)]));
-    const barberMap = new Map(
+    const staffMap = new Map(
       users
-        .filter((user) => user.role === 'BARBER')
+        .filter((user) => user.role === 'STAFF')
         .map((user) => [user.id, user])
     );
 
-    const commissionByBarber: Record<string, { barberId: string; barberName: string; rate: number; total: number; appointments: number }> = {};
+    const commissionByStaff: Record<string, { staffId: string; staffName: string; rate: number; total: number; appointments: number }> = {};
     const dailyTotals: Record<string, { date: string; grossRevenue: number; commissions: number }> = {};
     let grossRevenue = 0;
 
@@ -159,22 +159,22 @@ export function createReportsModule({
         const price = servicePrices.get(appointment.serviceId) || 0;
         grossRevenue += price;
 
-        const barber = barberMap.get(appointment.barberId);
-        const rate = barber?.commissionRate ?? 0.3;
-        const key = appointment.barberId;
+        const staff = staffMap.get(appointment.staffId);
+        const rate = staff?.commissionRate ?? 0.3;
+        const key = appointment.staffId;
 
-        if (!commissionByBarber[key]) {
-          commissionByBarber[key] = {
-            barberId: key,
-            barberName: barber?.name || 'Sin nombre',
+        if (!commissionByStaff[key]) {
+          commissionByStaff[key] = {
+            staffId: key,
+            staffName: staff?.name || 'Sin nombre',
             rate,
             total: 0,
             appointments: 0
           };
         }
 
-        commissionByBarber[key].appointments += 1;
-        commissionByBarber[key].total += price * rate;
+        commissionByStaff[key].appointments += 1;
+        commissionByStaff[key].total += price * rate;
 
         const dayKey = new Date(appointment.startAt).toISOString().split('T')[0];
         if (!dailyTotals[dayKey]) {
@@ -198,7 +198,7 @@ export function createReportsModule({
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0],
       grossRevenue: Number(grossRevenue.toFixed(2)),
-      commissions: Object.values(commissionByBarber).map((item) => ({
+      commissions: Object.values(commissionByStaff).map((item) => ({
         ...item,
         total: Number(item.total.toFixed(2))
       })),

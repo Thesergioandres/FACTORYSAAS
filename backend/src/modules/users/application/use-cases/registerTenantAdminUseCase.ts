@@ -15,6 +15,8 @@ export class RegisterTenantAdminUseCase {
     tenantName?: string;
     slug?: string;
     subdomain?: string;
+    verticalSlug?: string;
+    activeModules?: string[];
     customColors?: { primary?: string; secondary?: string };
     logoUrl?: string | null;
     adminName?: string;

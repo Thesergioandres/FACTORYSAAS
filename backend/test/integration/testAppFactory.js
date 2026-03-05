@@ -6,7 +6,7 @@ function createTestEnv() {
   return {
     nodeEnv: 'test',
     port: 0,
-    mongodbUri: 'mongodb://localhost:27017/barberia_test',
+    mongodbUri: 'mongodb://localhost:27017/factorysaas_test',
     useMongo: false,
     redisUrl: 'redis://localhost:6379',
     enableJobs: false,

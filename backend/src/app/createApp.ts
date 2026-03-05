@@ -13,7 +13,7 @@ import { createPlanGatekeeper } from '../shared/interfaces/http/middlewares/plan
 import { createAuthModule } from '../modules/auth/module';
 import { createUsersModule } from '../modules/users/module';
 import { createServicesModule } from '../modules/services/module';
-import { createBarbersModule } from '../modules/barbers/module';
+import { createStaffModule } from '../modules/staff/module';
 import { InMemoryUsersRepository } from '../modules/users/infrastructure/persistence/InMemoryUsersRepository';
 import { MongoUsersRepository } from '../modules/users/infrastructure/persistence/MongoUsersRepository';
 import { createTenantsRoutes } from '../modules/tenants/interfaces/http/tenantsRoutes';
@@ -74,7 +74,7 @@ export function createApp({
     authenticateJwt: authMiddleware,
     requireRoles
   });
-  const { barbersRoutes, availabilityRepository } = createBarbersModule({
+  const { staffRoutes, availabilityRepository } = createStaffModule({
     useMongo: persistence.useMongo,
     authenticateJwt: authMiddleware,
     requireApproved: requireApproved(),
@@ -190,7 +190,7 @@ export function createApp({
     definition: {
       openapi: '3.0.0',
       info: {
-        title: 'Barberia API',
+        title: 'Factory SaaS API',
         version: '1.0.0'
       }
     },
@@ -205,7 +205,7 @@ export function createApp({
   app.use('/api/plans', plansRoutes);
   app.use('/api/branches', branchesRoutes);
   app.use('/api/services', servicesRoutes);
-  app.use('/api/barbers', barbersRoutes);
+  app.use('/api/staff', staffRoutes);
   app.use('/api/appointments', appointmentsRoutes);
   app.use('/api/reports', reportsRoutes);
   app.use('/api/notifications', notificationsRoutes);

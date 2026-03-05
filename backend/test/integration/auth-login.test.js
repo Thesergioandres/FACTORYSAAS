@@ -8,10 +8,10 @@ test('POST /api/auth/login devuelve token y usuario', async () => {
 
   const response = await request(app)
     .post('/api/auth/login')
-    .send({ email: 'cliente@barberia.com', password: 'cliente123' })
+    .send({ email: 'cliente@factorysaas.com', password: 'cliente123' })
     .expect(200);
 
   assert.equal(typeof response.body.token, 'string');
-  assert.equal(response.body.user.email, 'cliente@barberia.com');
+  assert.equal(response.body.user.email, 'cliente@factorysaas.com');
   assert.equal(response.body.user.role, 'CLIENT');
 });

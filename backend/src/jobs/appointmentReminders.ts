@@ -58,9 +58,9 @@ async function processReminders() {
         continue;
       }
 
-      const users = await UserModel.find({ _id: { $in: [appointment.clientId, appointment.barberId] } }).lean();
+      const users = await UserModel.find({ _id: { $in: [appointment.clientId, appointment.staffId] } }).lean();
       const client = users.find((user) => user._id.toString() === appointment.clientId);
-      const barber = users.find((user) => user._id.toString() === appointment.barberId);
+      const staff = users.find((user) => user._id.toString() === appointment.staffId);
 
       await notificationsService.emitEvent({
         event,
@@ -72,7 +72,7 @@ async function processReminders() {
         },
         recipients: [
           client ? { id: client._id.toString(), role: client.role, phone: client.phone, whatsappConsent: client.whatsappConsent } : null,
-          barber ? { id: barber._id.toString(), role: barber.role, phone: barber.phone, whatsappConsent: barber.whatsappConsent } : null
+          staff ? { id: staff._id.toString(), role: staff.role, phone: staff.phone, whatsappConsent: staff.whatsappConsent } : null
         ].filter(Boolean) as Array<{ id: string; role: string; phone?: string; whatsappConsent?: boolean }>
       });
     }

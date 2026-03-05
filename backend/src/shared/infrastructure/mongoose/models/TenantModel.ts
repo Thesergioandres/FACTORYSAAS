@@ -6,6 +6,8 @@ type TenantDocument = {
   slug: string;
   planId: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -36,6 +38,8 @@ const tenantSchema = new mongoose.Schema<TenantDocument>(
     slug: { type: String, required: true, unique: true, index: true },
     planId: { type: String, required: true, index: true },
     subdomain: { type: String, required: true, unique: true, index: true },
+    verticalSlug: { type: String, required: true, index: true },
+    activeModules: { type: [String], default: [] },
     customColors: {
       primary: { type: String, default: '#f59e0b' },
       secondary: { type: String, default: '#facc15' }

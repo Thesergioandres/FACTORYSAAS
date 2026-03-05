@@ -5,7 +5,7 @@ export type AppointmentRecord = {
   tenantId: string;
   branchId: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: string;
   endAt: string;

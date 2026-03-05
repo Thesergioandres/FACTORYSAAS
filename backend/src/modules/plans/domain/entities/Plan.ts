@@ -3,7 +3,7 @@ type PlanProps = {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
   createdAt: string;
@@ -16,7 +16,7 @@ export class Plan {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
   createdAt: string;
@@ -26,7 +26,7 @@ export class Plan {
     this.name = props.name;
     this.price = props.price;
     this.maxBranches = props.maxBranches;
-    this.maxBarbers = props.maxBarbers;
+    this.maxStaff = props.maxStaff;
     this.maxMonthlyAppointments = props.maxMonthlyAppointments;
     this.features = props.features;
     this.createdAt = props.createdAt;

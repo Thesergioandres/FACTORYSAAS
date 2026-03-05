@@ -6,7 +6,7 @@ function mapPlan(document: {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
 } | null): PlanEntity | null {
@@ -17,7 +17,7 @@ function mapPlan(document: {
     name: document.name,
     price: document.price,
     maxBranches: document.maxBranches,
-    maxBarbers: document.maxBarbers,
+    maxStaff: document.maxStaff,
     maxMonthlyAppointments: document.maxMonthlyAppointments,
     features: document.features || []
   };

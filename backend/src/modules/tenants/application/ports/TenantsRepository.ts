@@ -3,6 +3,8 @@ export interface TenantEntity {
   slug: string;
   name: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   status: string;
   planId: string;
   planName?: string;

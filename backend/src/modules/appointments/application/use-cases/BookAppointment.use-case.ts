@@ -3,7 +3,7 @@ import { OverlappingAppointmentError } from '../../domain/errors/AppointmentErro
 import { IAppointmentRepository } from '../../domain/ports/IAppointmentRepository';
 import { IWhatsAppService } from '../../domain/ports/IWhatsAppService';
 import { AppointmentId } from '../../domain/value-objects/AppointmentId';
-import { BarberId } from '../../domain/value-objects/BarberId';
+import { StaffId } from '../../domain/value-objects/StaffId';
 import { ClientId } from '../../domain/value-objects/ClientId';
 import { ServiceId } from '../../domain/value-objects/ServiceId';
 import { TimeRange } from '../../domain/value-objects/TimeRange';
@@ -12,7 +12,7 @@ export interface BookAppointmentInput {
   tenantId: string;
   branchId: string;
   appointmentId: string;
-  barberId: string;
+  staffId: string;
   clientId: string;
   serviceId: string;
   startAt: Date;
@@ -20,7 +20,7 @@ export interface BookAppointmentInput {
   notes?: string | null;
   notifyWhatsapp?: boolean;
   clientPhone?: string;
-  barberPhone?: string;
+  staffPhone?: string;
 }
 
 export class BookAppointmentUseCase {
@@ -38,16 +38,16 @@ export class BookAppointmentUseCase {
     const endAt = addMinutes(startAt, input.durationMinutes);
     const timeRange = new TimeRange(startAt, endAt);
 
-    const barberId = new BarberId(input.barberId);
+    const staffId = new StaffId(input.staffId);
 
     const isOverlapping = await this.repository.existsOverlapping(
-      barberId,
+      staffId,
       timeRange
     );
 
     if (isOverlapping) {
       throw new OverlappingAppointmentError(
-        'Barber already has an appointment in the selected time range'
+        'Staff already has an appointment in the selected time range'
       );
     }
 
@@ -55,7 +55,7 @@ export class BookAppointmentUseCase {
       id: new AppointmentId(input.appointmentId),
       tenantId: input.tenantId,
       branchId: input.branchId,
-      barberId,
+      staffId,
       clientId: new ClientId(input.clientId),
       serviceId: new ServiceId(input.serviceId),
       timeRange,
@@ -64,13 +64,13 @@ export class BookAppointmentUseCase {
 
     await this.repository.save(appointment);
 
-    if (input.notifyWhatsapp && input.clientPhone && input.barberPhone) {
+    if (input.notifyWhatsapp && input.clientPhone && input.staffPhone) {
       await this.whatsappService.sendAppointmentCreated({
         appointmentId: appointment.id,
-        barberId,
+        staffId,
         serviceId: new ServiceId(input.serviceId),
         clientPhone: input.clientPhone,
-        barberPhone: input.barberPhone,
+        staffPhone: input.staffPhone,
         startAt: appointment.getStartAt()
       });
     }

@@ -27,9 +27,9 @@ export function createPlanGatekeeper({
     return { plan };
   };
 
-  const requireBarberSlot = async (req: Request, res: Response, next: NextFunction) => {
+  const requireStaffSlot = async (req: Request, res: Response, next: NextFunction) => {
     const role = (req.body as { role?: string })?.role;
-    if (role !== 'BARBER') {
+    if (role !== 'STAFF') {
       return next();
     }
 
@@ -39,8 +39,8 @@ export function createPlanGatekeeper({
     const result = await requirePlan(tenantId);
     if ('error' in result) return res.status(result.statusCode ?? 500).json({ message: result.error });
 
-    const barbers = await usersRepository.list(tenantId, 'BARBER');
-    if (barbers.length >= result.plan.maxBarbers) {
+    const staff = await usersRepository.list(tenantId, 'STAFF');
+    if (staff.length >= result.plan.maxStaff) {
       return res.status(403).json({ message: LIMIT_MESSAGE });
     }
 
@@ -62,5 +62,5 @@ export function createPlanGatekeeper({
     return next();
   };
 
-  return { requireBarberSlot, requireBranchSlot };
+  return { requireStaffSlot, requireBranchSlot };
 }

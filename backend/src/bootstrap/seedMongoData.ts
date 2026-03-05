@@ -21,7 +21,7 @@ async function ensureUser({
   email: string;
   phone: string;
   password: string;
-  role: 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT';
   whatsappConsent: boolean;
   approved: boolean;
   tenantId?: string | null;
@@ -46,7 +46,7 @@ async function ensureUser({
   });
 }
 
-async function ensurePlan(input: { name: string; price: number; maxBranches: number; maxBarbers: number; maxMonthlyAppointments: number; features: string[] }) {
+async function ensurePlan(input: { name: string; price: number; maxBranches: number; maxStaff: number; maxMonthlyAppointments: number; features: string[] }) {
   const existing = await PlanModel.findOne({ name: input.name });
   if (existing) return existing;
   return PlanModel.create(input);
@@ -64,6 +64,8 @@ async function ensureTenant(input: {
     name: input.name,
     slug: input.slug,
     subdomain: input.subdomain,
+    verticalSlug: 'default',
+    activeModules: [],
     planId: input.planId,
     status: 'active'
   });
@@ -85,7 +87,7 @@ export async function seedMongoData() {
     name: 'Trial',
     price: 0,
     maxBranches: 1,
-    maxBarbers: 2,
+    maxStaff: 2,
     maxMonthlyAppointments: 80,
     features: ['reports']
   });
@@ -93,15 +95,15 @@ export async function seedMongoData() {
     name: 'Pro',
     price: 49,
     maxBranches: 5,
-    maxBarbers: 15,
+    maxStaff: 15,
     maxMonthlyAppointments: 1000,
     features: ['reports', 'whatsapp_custom']
   });
 
   const tenant = await ensureTenant({
-    name: 'Barberia Noir',
-    slug: 'noir',
-    subdomain: 'noir',
+    name: 'Essence Factory',
+    slug: 'essence',
+    subdomain: 'essence',
     planId: proPlan._id.toString()
   });
 
@@ -114,7 +116,7 @@ export async function seedMongoData() {
 
   await ensureUser({
     name: 'God Root',
-    email: 'god@barberia.com',
+    email: 'god@factorysaas.com',
     phone: '+573000000000',
     password: 'god123',
     role: 'GOD',
@@ -125,7 +127,7 @@ export async function seedMongoData() {
 
   const admin = await ensureUser({
     name: 'Administrador',
-    email: 'admin@barberia.com',
+    email: 'admin@factorysaas.com',
     phone: '+573000000001',
     password: 'admin123',
     role: 'ADMIN',
@@ -135,12 +137,12 @@ export async function seedMongoData() {
     branchIds: [branch._id.toString()]
   });
 
-  const barber = await ensureUser({
-    name: 'Barbero Demo',
-    email: 'barbero@barberia.com',
+  const staff = await ensureUser({
+    name: 'Staff Demo',
+    email: 'staff@factorysaas.com',
     phone: '+573000000002',
-    password: 'barbero123',
-    role: 'BARBER',
+    password: 'staff123',
+    role: 'STAFF',
     whatsappConsent: true,
     approved: true,
     tenantId: tenant._id.toString(),
@@ -149,7 +151,7 @@ export async function seedMongoData() {
 
   const client = await ensureUser({
     name: 'Cliente Demo',
-    email: 'cliente@barberia.com',
+    email: 'cliente@factorysaas.com',
     phone: '+573000000003',
     password: 'cliente123',
     role: 'CLIENT',
@@ -191,7 +193,7 @@ export async function seedMongoData() {
         tenantId: tenant._id.toString(),
         branchId: branch._id.toString(),
         clientId: admin._id.toString(),
-        barberId: barber._id.toString(),
+        staffId: staff._id.toString(),
         serviceId: firstService._id.toString(),
         startAt: tomorrow,
         endAt: new Date(tomorrow.getTime() + firstService.durationMinutes * 60 * 1000),
@@ -201,5 +203,5 @@ export async function seedMongoData() {
     }
   }
 
-  return { admin, barber, client, tenant, branch, trialPlan, proPlan };
+  return { admin, staff, client, tenant, branch, trialPlan, proPlan };
 }

@@ -11,8 +11,8 @@ export type CreateAppointmentHistoryInput = {
   nextStartAt?: string;
   prevEndAt?: string;
   nextEndAt?: string;
-  prevBarberId?: string;
-  nextBarberId?: string;
+  prevStaffId?: string;
+  nextStaffId?: string;
 };
 
 export interface AppointmentHistoryRepository {

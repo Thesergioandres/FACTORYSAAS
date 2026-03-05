@@ -4,7 +4,7 @@ type AppointmentDocument = {
   tenantId: string;
   branchId: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: Date;
   endAt: Date;
@@ -19,7 +19,7 @@ const appointmentSchema = new mongoose.Schema<AppointmentDocument>(
     tenantId: { type: String, required: true, index: true },
     branchId: { type: String, required: true, index: true },
     clientId: { type: String, required: true, index: true },
-    barberId: { type: String, required: true, index: true },
+    staffId: { type: String, required: true, index: true },
     serviceId: { type: String, required: true, index: true },
     startAt: { type: Date, required: true, index: true },
     endAt: { type: Date, required: true },

@@ -1,198 +1,170 @@
-# ESSENCE FACTORY SAAS - Documentacion de Producto
+# ESSENCE FACTORY SAAS - Documentacion Tecnica Completa
 
-## 1. Concepto "The Factory"
-Essence no es una app vertical, es una infraestructura motorizada. Un cliente (dueno de negocio) entra, se registra y la fabrica construye en segundos una instancia completa con base de datos logica, reglas financieras y presencia web propia.
+Fecha: 2026-03-04
 
-## 2. Arquitectura de Niveles (Jerarquia de Poder)
-
-### Nivel 0: Panel GOD (tu)
-- Control de la fabrica: activar o suspender negocios.
-- Gestion de planes: crear planes (Bronce, Plata, Oro) con limites por recursos.
-- Metricas globales: ingresos totales y consumo de API WhatsApp.
-
-### Nivel 1: Tenant (dueno del negocio)
-- Identidad propia (white-label): logo y colores, la UI se adapta a su marca.
-- Modulos de operacion:
-  - Sistema POS: inventario de productos y ventas rapidas.
-  - Gestion de staff: perfiles de especialistas con horarios y comisiones.
-  - Multi-sede: control de sucursales desde una sola cuenta.
-  - Metricas financieras: ingresos, egresos y utilidad neta.
-
-### Nivel 2: Cliente final
-- Acceso independiente por negocio.
-- Panel de reservas con disponibilidad en tiempo real.
-- Seleccion de especialista y agenda por slots.
-
-## 3. Circulo de Oro: Reserva y SEO
-- Subdominios dinamicos por negocio: negocioX.essence.com.
-- SEO local: cada negocio tiene su propia landing indexable.
-- Conversion: clic -> registro/login -> reserva contextual.
-- Reserva inteligente: Servicio -> Especialista -> Fecha/Hora.
-
-## 4. Automatizacion por WhatsApp
-Motor de eventos para el ciclo de vida de la cita:
-- Reserva exitosa: confirmacion con fecha, hora y especialista.
-- Recordatorio (2h antes): link directo a ubicacion.
-- Post-venta: encuesta y calificacion de servicio.
-
-## 5. Diferenciales Tecnicos
-- Motor de colisiones: evita doble reserva en el mismo horario.
-- Gestion de no-shows: bloqueo o pago previo tras 3 faltas.
-- Offline fallback: sincronizacion automatica cuando regresa la conexion.
-
----
-
-## 6. Vision General (Tecnica)
-Plataforma SaaS multi-tenant para negocios de servicios. Gestiona agenda, usuarios por rol, servicios, notificaciones WhatsApp y reportes. El sistema funciona como monorepo con frontend React y backend Node/Express, comunicados por API REST.
-
-### Objetivos de Producto
-- Operar multiples negocios en un solo despliegue con aislamiento por tenant.
-- Automatizar el onboarding (provisioning) de nuevos negocios.
-- Controlar limites por plan (sedes, especialistas, citas mensuales).
-- Permitir white-label con marca y colores por tenant.
-- Centralizar notificaciones y recordatorios via WhatsApp.
-
----
+## 1. Resumen Ejecutivo
+Essence Factory SaaS es una plataforma multi-tenant white-label para verticales de servicios. El sistema opera como monorepo con frontend React (SPA) y backend Node/Express, con persistencia en MongoDB y jobs opcionales via Redis/BullMQ. La plataforma ofrece onboarding automatico de negocios, control por planes, branding por tenant y modulos de operacion (agenda, staff, inventario, reportes, WhatsApp).
 
 ## 2. Arquitectura General
 
-### Topologia
-- Frontend SPA: React + Vite.
-- Backend API REST: Node + Express + TypeScript.
-- Persistencia: MongoDB (principal) con fallback en memoria.
-- Background jobs: Redis + BullMQ (opcional).
+### 2.1 Topologia
+- Frontend SPA: React 19 + Vite 6 + Tailwind 4 + React Router 7.
+- Backend API REST: Node.js + Express + TypeScript.
+- Persistencia: MongoDB (principal) con repositorios in-memory para fallback.
+- Jobs: Redis + BullMQ (opcional, controlado por ENABLE_JOBS).
+- Hosting: Nginx (en Docker), configuracion local con Vite.
 
-### Multi-Tenancy
-- Cada request se contextualiza por `tenantId` incluido en el JWT.
-- Repositorios filtran por `tenantId`.
-- Frontend resuelve tenant por subdominio y aplica branding dinamico.
+### 2.2 Multi-Tenancy
+- `tenantId` viaja en JWT y condiciona consultas.
+- Repositorios filtran por `tenantId` en la capa de persistence.
+- Frontend resuelve tenant por subdominio y aplica branding con CSS variables.
 
----
+### 2.3 Capas de Aplicacion
+Backend sigue arquitectura hexagonal:
+- domain: entidades, reglas y validaciones core.
+- application: casos de uso.
+- infrastructure: adaptadores (Mongo, Redis, JWT, etc).
+- interfaces: rutas HTTP y controladores.
 
-## 3. Backend
+Frontend sigue separacion por modulos:
+- shared: contextos, layouts, infraestructura y UI base.
+- modules: features por rol (admin, staff, god, landing, onboarding).
 
-### 3.1 Stack
+## 3. Rutas y Hosts
+
+### 3.1 Namespace por host
+- domain.com/ -> Landing principal (corporativa, venta del producto).
+- domain.com/barberias-landing -> Landing vertical barberias (marketing + planes + login).
+- subdominio.domain.com/ -> Software real del cliente (tenant).
+
+### 3.2 Router por contexto
+- landing: rutas publicas de marketing y vertical.
+- app: rutas internas para roles y paneles.
+- tenant: ruta de booking para clientes finales.
+
+## 4. Roles y Jerarquia
+- GOD: control global (tenants, planes, metricas, panel GOD).
+- ADMIN: operacion del tenant (agenda, staff, inventario, reportes, sedes).
+- BARBER: operacion diaria (staff dashboard).
+- CLIENT: reserva y acceso al booking.
+
+## 5. Backend
+
+### 5.1 Stack
 - Node.js >= 18
 - Express 4
 - TypeScript
 - MongoDB + Mongoose
-- Redis + BullMQ
+- Redis + BullMQ (opcional)
 - JWT + bcrypt
-- Swagger (base configurada)
 
-### 3.2 Arquitectura (Hexagonal)
-Cada modulo sigue la separacion:
-- `domain`: entidades y reglas de negocio
-- `application`: casos de uso
-- `infrastructure`: adaptadores (Mongo, JWT, providers)
-- `interfaces`: controladores y rutas HTTP
+### 5.2 Modulos
+- auth: login, tokens, reset de password.
+- users: CRUD de usuarios, registro de cliente, registro de tenant.
+- tenants: data del negocio, branding, metrics.
+- plans: planes globales y limites.
+- branches: sedes por tenant.
+- services: catalogo de servicios.
+- barbers: horarios y bloqueos.
+- appointments: reservas, cambios y reglas de colision.
+- notifications: WhatsApp, logs y configuracion.
+- reports: resumen diario, rango y comisiones.
+- inventory: productos, ventas, reabastecimiento.
 
-### 3.3 Modulos
-- **auth**: login, tokens, reset de password.
-- **users**: CRUD, roles, aprobaciones.
-- **tenants**: datos del negocio, branding, plan, status.
-- **plans**: planes globales y limites.
-- **branches**: sedes por tenant.
-- **services**: catalogo de servicios.
-- **barbers**: horarios y bloqueos.
-- **appointments**: reservas, cancelacion, reprogramacion.
-- **notifications**: WhatsApp, logs, configuracion.
-- **reports**: resumenes operativos.
+### 5.3 Entidades principales
+- Plan: name, price, maxBranches, maxBarbers, maxMonthlyAppointments, features.
+- Tenant: name, slug, subdomain, planId, status, customColors, logoUrl, config.
+- Branch: tenantId, name, address, phone, active.
+- User: role, tenantId, branchIds, approved, whatsappConsent, commissionRate.
+- Appointment: tenantId, branchId, clientId, barberId, serviceId, startAt, endAt, status.
+- Product: tenantId, name, sku, price, stock, costos y restocks.
+- WhatsAppLog: tenantId, event, roleTarget, phone, status.
 
-### 3.4 Entidades Principales
-- **Plan**
-  - name, price
-  - maxBranches, maxBarbers, maxMonthlyAppointments
-  - features[]
-- **Tenant**
-  - name, slug, subdomain
-  - planId, status (trial|active|suspended)
-  - customColors { primary, secondary }
-  - logoUrl
-  - config (reglas de agenda y notificaciones)
-- **Branch**
-  - tenantId, name, address, phone, active
-- **User**
-  - role: GOD|ADMIN|BARBER|CLIENT
-  - tenantId, branchIds
-  - approved, whatsappConsent
-- **Appointment**
-  - tenantId, branchId
-  - clientId, barberId, serviceId
-  - startAt, endAt, status
-- **WhatsAppLog**
-  - tenantId, event, roleTarget, phone, status
+### 5.4 Relaciones de Base de Datos
+- Plan 1..n Tenant (Tenant.planId).
+- Tenant 1..n Branch (Branch.tenantId).
+- Tenant 1..n User (User.tenantId).
+- Tenant 1..n Service (Service.tenantId).
+- Tenant 1..n Product (Product.tenantId).
+- Tenant 1..n Appointment (Appointment.tenantId).
+- Tenant 1..n WhatsAppLog (WhatsAppLog.tenantId).
+- Branch 1..n Appointment (Appointment.branchId).
+- User (BARBER) 1..n Appointment (Appointment.barberId).
+- User (CLIENT) 1..n Appointment (Appointment.clientId).
+- Service 1..n Appointment (Appointment.serviceId).
+- User n..n Branch (User.branchIds).
 
-### 3.5 Provisioning Engine (FactoryService)
-Cuando se registra un TENANT_ADMIN:
-1) Se crea el Tenant con Plan Trial por defecto.
-2) Se crea la primera sede (Branch).
-3) Se crea el usuario ADMIN asociado al tenant.
-4) Se inicializa `appConfig` con valores estandar.
+### 5.5 Provisioning (FactoryService)
+Registro tenant:
+1) Crea Tenant con plan Trial por defecto.
+2) Crea Branch inicial.
+3) Crea Admin asociado.
+4) Inicializa config de agenda y notificaciones.
 
-### 3.6 Gatekeeper de Limites
-Middleware global que valida limites antes de crear recursos:
-- Antes de crear **BARBER**, valida `maxBarbers` del plan.
-- Antes de crear **BRANCH**, valida `maxBranches` del plan.
-- Respuesta 403: "Has alcanzado el limite de tu plan. Actualiza a Pro para continuar".
+### 5.6 Gatekeeper de Planes
+Middleware para controlar limites por plan:
+- Antes de crear BARBER -> valida maxBarbers.
+- Antes de crear BRANCH -> valida maxBranches.
 
-### 3.7 Notificaciones WhatsApp
-- Provider mock o BullMQ.
-- `tenantId` viaja en cada job.
-- Logs persistidos por tenant.
-- Quiet hours y debounce configurables.
+### 5.7 No-shows
+- Regla: bloqueo o pago previo despues de N faltas.
+- Respuesta 402 con `paymentUrl` para desbloqueo.
 
----
+### 5.8 Redis y Jobs
+- ENABLE_JOBS controla ejecucion de jobs.
+- Redis en 6379 por default.
+- En dev, si Redis no esta activo, logs pueden aparecer pero no bloquean el API.
 
-## 4. Frontend
+## 6. Frontend
 
-### 4.1 Stack
+### 6.1 Stack
 - React 19
 - TypeScript
 - Vite 6
-- Tailwind CSS 4
+- Tailwind 4
 - React Router 7
-- Framer Motion
+- TanStack Query
+- Recharts
+- React Day Picker
 
-### 4.2 Clean Architecture
-- `domain`: modelos y contratos
-- `application`: casos de uso
-- `infrastructure`: clientes API
-- `presentation`: paginas y componentes
+### 6.2 White-Label
+- TenantContext resuelve el subdominio.
+- Inyecta CSS variables: --primary, --secondary, --logo-url.
+- Branding dinamico en layouts y componentes base.
 
-### 4.3 White-Label
-- TenantProvider resuelve tenant (subdominio o contexto).
-- Inyecta colores dinamicos via CSS variables.
-- Header, botones y layout se adaptan por tenant.
+### 6.3 Rutas Principales
+Landing:
+- / -> landing corporativa.
+- /barberias-landing -> vertical barberias.
+- /barberias-login -> login duenos y staff.
+- /barberias-client-login -> login clientes (con subdominio).
+- /admin-login -> login exclusivo GOD.
 
-### 4.4 Rutas Principales
-Publicas:
-- /login
-- /register
-- /password
-- /waiting
-
-Cliente:
-- /client
-- /profile
-
-Barbero:
-- /barber
-
-Admin:
+App:
 - /admin
-- /admin/users
-- /admin/services
-- /admin/appointments
 - /admin/agenda
-- /admin/notifications
+- /admin/team (comisiones)
+- /admin/branches
+- /admin/whatsapp
+- /admin/inventory
 - /admin/reports
-- /admin/tenants (solo GOD)
-- /admin/approvals (solo GOD)
+- /staff
+- /god
 
----
+Tenant:
+- / -> booking engine
 
-## 5. API REST (Resumen)
+### 6.4 Login y Roles
+- LoginCard valida roles permitidos segun portal.
+- GOD solo entra via /admin-login.
+- Duenos y staff via /barberias-login.
+- Clientes via /barberias-client-login + subdominio.
+
+### 6.5 PWA
+- Vite PWA con manifest e iconos personalizados.
+- Registro de SW en prod con wrapper para dev.
+
+## 7. API REST (Resumen)
 
 ### Auth
 - POST /auth/login
@@ -206,7 +178,6 @@ Admin:
 - POST /users/register-tenant
 - POST /users/admin (ADMIN)
 - GET /users/pending (GOD)
-- PATCH /users/:id/approve (GOD)
 - PATCH /users/:id
 - PATCH /users/:id/whatsapp-consent
 - PATCH /users/me
@@ -254,10 +225,18 @@ Admin:
 
 ### Reports
 - GET /reports/summary
+- GET /reports/daily
+- GET /reports/range
 
----
+### Inventory
+- GET /inventory
+- POST /inventory
+- PATCH /inventory/:id
+- DELETE /inventory/:id
+- POST /inventory/sales
+- POST /inventory/restock
 
-## 6. Variables de Entorno
+## 8. Variables de Entorno
 
 ### Backend
 - NODE_ENV, PORT
@@ -267,55 +246,36 @@ Admin:
 - MIN_ADVANCE_MINUTES, CANCEL_LIMIT_MINUTES, RESCHEDULE_LIMIT_MINUTES
 - QUIET_HOURS_START, QUIET_HOURS_END
 - CORS_ORIGINS
+- CLOUDINARY_*
+- VAPID_*
 
 ### Frontend
 - VITE_API_BASE_URL
 
----
+## 9. Build y Dev
 
-## 7. Infraestructura y Despliegue
+### Comandos
+- npm run dev (monorepo)
+- npm run dev -w backend
+- npm run dev -w frontend
+- npm run build
 
-### Docker Compose
-Incluye:
-- Nginx (proxy)
-- Frontend
-- Backend
-- MongoDB
-- Redis
-- Mongo Express
+### Notas de Dev
+- Vite usa polling en Windows para detectar cambios.
+- Backend usa ts-node-dev con polling.
+- Redis puede ser opcional en dev.
 
-### Railway
-- Servicios: backend, frontend, mongo, redis
-- Deploy hooks para CI/CD
+## 10. Seguridad
+- JWT con expiracion configurada.
+- bcrypt para hashing de password.
+- CORS configurado por env.
+- Rate limiting activo.
 
----
+## 11. Observabilidad
+- pino-http para logs.
+- Swagger base habilitado en /docs.
 
-## 8. Roles y Flujos
-
-### GOD
-- Gestion global de tenants
-- Ajuste de planes
-- Metricas de conversion y consumo
-
-### ADMIN
-- Gestion de usuarios, servicios, agenda y notificaciones
-
-### BARBER
-- Gestion de horarios y bloqueos
-
-### CLIENT
-- Reservas y gestion de citas
-
----
-
-## 9. Testing
-- Backend: `npm test`
-- Build general: `npm run build`
-
----
-
-## 10. Notas de Evolucion
-- Factory SaaS habilita onboarding automatico con plan Trial.
-- Gatekeeper evita exceder limites por plan.
-- Branding dinamico por tenant en frontend.
-- Jobs centralizados con tenantId para trazabilidad.
+## 12. Roadmap Tecnico
+- Landing SEO por vertical con metadatos dinamicos.
+- Dashboard GOD con graficas y uso por ciudad.
+- Multi-vertical extensible (restaurantes, gimnasios).

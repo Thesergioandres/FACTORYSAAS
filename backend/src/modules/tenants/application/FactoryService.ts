@@ -36,6 +36,8 @@ export class FactoryService {
     tenantName?: string;
     slug?: string;
     subdomain?: string;
+    verticalSlug?: string;
+    activeModules?: string[];
     customColors?: { primary?: string; secondary?: string };
     logoUrl?: string | null;
     adminName?: string;
@@ -57,9 +59,10 @@ export class FactoryService {
 
     const slug = normalizeSlug(input.slug || tenantName);
     const subdomain = normalizeSlug(input.subdomain || slug);
+    const verticalSlug = normalizeSlug(input.verticalSlug || '');
 
-    if (!slug || !subdomain) {
-      return this.error('slug/subdomain inválido', 400);
+    if (!slug || !subdomain || !verticalSlug) {
+      return this.error('slug/subdomain/verticalSlug invalido', 400);
     }
 
     const existing = await this.deps.tenantsRepository.findBySlug(slug);
@@ -76,6 +79,8 @@ export class FactoryService {
       name: tenantName,
       slug,
       subdomain,
+      verticalSlug,
+      activeModules: Array.isArray(input.activeModules) ? [...input.activeModules] : [],
       planId: plan.id,
       planName: plan.name,
       status: 'trial',

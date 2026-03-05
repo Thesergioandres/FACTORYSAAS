@@ -14,8 +14,8 @@ type BlockRecord = {
 };
 
 type AvailabilityRepository = {
-  listSchedules(barberId: string): Promise<ScheduleRecord[]>;
-  listBlocks(barberId: string): Promise<BlockRecord[]>;
+  listSchedules(staffId: string): Promise<ScheduleRecord[]>;
+  listBlocks(staffId: string): Promise<BlockRecord[]>;
 };
 
 type UsersRepository = {
@@ -47,15 +47,15 @@ export class ReassignAppointmentUseCase {
     }
   ) {}
 
-  async execute({ tenantId, appointmentId, newBarberId, actorRole, actorUserId }: {
+  async execute({ tenantId, appointmentId, newStaffId, actorRole, actorUserId }: {
     tenantId: string;
     appointmentId?: string;
-    newBarberId?: string;
+    newStaffId?: string;
     actorRole?: string;
     actorUserId?: string;
   }): Promise<{ appointment: AppointmentRecord } | { error: string; statusCode: number }> {
-    if (!tenantId || !appointmentId || !newBarberId) {
-      return { error: 'tenantId, appointmentId y newBarberId son requeridos', statusCode: 400 };
+    if (!tenantId || !appointmentId || !newStaffId) {
+      return { error: 'tenantId, appointmentId y newStaffId son requeridos', statusCode: 400 };
     }
 
     const appointment = await this.deps.appointmentsRepository.findById(appointmentId, tenantId);
@@ -77,12 +77,12 @@ export class ReassignAppointmentUseCase {
     const bufferTimeMinutes = tenant.config.bufferTimeMinutes || 0;
     const endDate = new Date(startDate.getTime() + (service.durationMinutes + bufferTimeMinutes) * 60 * 1000);
 
-    const schedules = await this.deps.availabilityRepository.listSchedules(newBarberId);
+    const schedules = await this.deps.availabilityRepository.listSchedules(newStaffId);
     if (schedules.length > 0) {
       const day = startDate.getDay();
       const schedule = schedules.find((item) => item.dayOfWeek === day);
       if (!schedule) {
-        return { error: 'Barbero no disponible para ese día', statusCode: 400 };
+        return { error: 'Staff no disponible para ese dia', statusCode: 400 };
       }
 
       const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
@@ -93,11 +93,11 @@ export class ReassignAppointmentUseCase {
       const scheduleEnd = eh * 60 + em;
 
       if (startMinutes < scheduleStart || endMinutes > scheduleEnd) {
-        return { error: 'Cita fuera del horario del barbero', statusCode: 400 };
+        return { error: 'Cita fuera del horario del staff', statusCode: 400 };
       }
     }
 
-    const blocks = await this.deps.availabilityRepository.listBlocks(newBarberId);
+    const blocks = await this.deps.availabilityRepository.listBlocks(newStaffId);
     const hasBlockConflict = blocks.some((block) => {
       const blockStart = new Date(block.startAt);
       const blockEnd = new Date(block.endAt);
@@ -105,35 +105,35 @@ export class ReassignAppointmentUseCase {
     });
 
     if (hasBlockConflict) {
-      return { error: 'Horario bloqueado por el barbero', statusCode: 409 };
+      return { error: 'Horario bloqueado por el staff', statusCode: 409 };
     }
 
-    const overlaps = await this.deps.appointmentsRepository.findByBarberInRange(tenantId, newBarberId, startDate, endDate, appointment.id);
+    const overlaps = await this.deps.appointmentsRepository.findByStaffInRange(tenantId, newStaffId, startDate, endDate, appointment.id);
     if (overlaps.length > 0) {
-      return { error: 'El barbero ya tiene cita en ese rango', statusCode: 409 };
+      return { error: 'El staff ya tiene cita en ese rango', statusCode: 409 };
     }
 
-    const previousBarberId = appointment.barberId;
-    appointment.barberId = newBarberId;
-    await this.deps.appointmentsRepository.update(appointment.id, { barberId: newBarberId });
+    const previousStaffId = appointment.staffId;
+    appointment.staffId = newStaffId;
+    await this.deps.appointmentsRepository.update(appointment.id, { staffId: newStaffId });
 
     await this.deps.historyRepository.create({
       appointmentId: appointment.id,
       actorRole: actorRole || 'ADMIN',
       actorUserId: actorUserId || 'SYSTEM',
       action: 'REASSIGNED',
-      prevBarberId: previousBarberId,
-      nextBarberId: newBarberId
+      prevStaffId: previousStaffId,
+      nextStaffId: newStaffId
     });
 
     const users = await this.deps.usersRepository.list(tenantId);
     const client = users.find((item) => item.id === appointment.clientId);
-    const newBarber = users.find((item) => item.id === newBarberId);
+    const newStaff = users.find((item) => item.id === newStaffId);
 
     await this.deps.notificationsService.emitEvent({
       event: 'APPOINTMENT_REASSIGNED',
       appointment,
-      recipients: [client, newBarber].filter(Boolean) as Array<{ id: string; role: string; phone?: string; whatsappConsent?: boolean }>
+      recipients: [client, newStaff].filter(Boolean) as Array<{ id: string; role: string; phone?: string; whatsappConsent?: boolean }>
     });
 
     return { appointment };

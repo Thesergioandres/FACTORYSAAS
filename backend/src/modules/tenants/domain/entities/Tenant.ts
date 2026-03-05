@@ -7,6 +7,8 @@ type TenantProps = {
   planId: string;
   planName?: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -39,6 +41,8 @@ export class Tenant {
   planId: string;
   planName?: string;
   subdomain: string;
+  verticalSlug: string;
+  activeModules: string[];
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -68,6 +72,8 @@ export class Tenant {
     this.planId = props.planId;
     this.planName = props.planName;
     this.subdomain = props.subdomain;
+    this.verticalSlug = props.verticalSlug;
+    this.activeModules = props.activeModules;
     this.customColors = props.customColors;
     this.logoUrl = props.logoUrl ?? null;
     this.status = props.status;

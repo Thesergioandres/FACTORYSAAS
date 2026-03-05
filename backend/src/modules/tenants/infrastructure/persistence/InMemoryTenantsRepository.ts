@@ -42,6 +42,8 @@ export class InMemoryTenantsRepository implements TenantsRepository {
 
     if (input.name !== undefined) tenant.name = input.name;
     if (input.subdomain !== undefined) tenant.subdomain = input.subdomain;
+    if (input.verticalSlug !== undefined) tenant.verticalSlug = input.verticalSlug;
+    if (input.activeModules !== undefined) tenant.activeModules = [...input.activeModules];
     if (input.status !== undefined) tenant.status = input.status;
     if (input.planId !== undefined) tenant.planId = input.planId;
     if (input.planName !== undefined) tenant.planName = input.planName;

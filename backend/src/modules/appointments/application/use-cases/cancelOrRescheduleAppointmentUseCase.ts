@@ -72,12 +72,12 @@ export class CancelOrRescheduleAppointmentUseCase {
 
     const users = await this.deps.usersRepository.list(tenantId);
     const client = users.find((item) => item.id === appointment.clientId);
-    const barber = users.find((item) => item.id === appointment.barberId);
+    const staff = users.find((item) => item.id === appointment.staffId);
 
     await this.deps.notificationsService.emitEvent({
       event: 'APPOINTMENT_CANCELLED',
       appointment,
-      recipients: [client, barber].filter(Boolean) as UserRecord[]
+      recipients: [client, staff].filter(Boolean) as UserRecord[]
     });
 
     return { appointment };
@@ -128,15 +128,15 @@ export class CancelOrRescheduleAppointmentUseCase {
     const bufferTimeMinutes = tenant.config.bufferTimeMinutes || 0;
     const nextEnd = new Date(nextStart.getTime() + (service.durationMinutes + bufferTimeMinutes) * 60 * 1000);
 
-    const overlaps = await this.deps.appointmentsRepository.findByBarberInRange(
+    const overlaps = await this.deps.appointmentsRepository.findByStaffInRange(
       tenantId,
-      appointment.barberId,
+      appointment.staffId,
       nextStart,
       nextEnd,
       appointment.id
     );
     if (overlaps.length > 0) {
-      return { error: 'El barbero ya tiene una cita en ese nuevo rango', statusCode: 409 };
+      return { error: 'El staff ya tiene una cita en ese nuevo rango', statusCode: 409 };
     }
 
     const clientOverlaps = await this.deps.appointmentsRepository.findByClientInRange(
@@ -173,12 +173,12 @@ export class CancelOrRescheduleAppointmentUseCase {
 
     const users = await this.deps.usersRepository.list(tenantId);
     const client = users.find((item) => item.id === appointment.clientId);
-    const barber = users.find((item) => item.id === appointment.barberId);
+    const staff = users.find((item) => item.id === appointment.staffId);
 
     await this.deps.notificationsService.emitEvent({
       event: 'APPOINTMENT_RESCHEDULED',
       appointment,
-      recipients: [client, barber].filter(Boolean) as UserRecord[]
+      recipients: [client, staff].filter(Boolean) as UserRecord[]
     });
 
     return { appointment };

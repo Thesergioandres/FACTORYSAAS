@@ -89,7 +89,7 @@ async function sendNow(
   const template = buildTemplate(event);
   const resolvedTemplate = template || `Evento ${event}`;
   const tenant = await tenantsRepository.findById(appointment.tenantId);
-  const tenantName = tenant?.name || 'Barbería';
+  const tenantName = tenant?.name || 'Tenant';
 
   for (const recipient of recipients) {
     if (!recipient?.phone || !recipient?.whatsappConsent) {

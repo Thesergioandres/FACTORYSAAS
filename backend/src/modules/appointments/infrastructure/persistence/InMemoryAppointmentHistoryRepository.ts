@@ -23,8 +23,8 @@ export class InMemoryAppointmentHistoryRepository implements AppointmentHistoryR
       nextStartAt: input.nextStartAt,
       prevEndAt: input.prevEndAt,
       nextEndAt: input.nextEndAt,
-      prevBarberId: input.prevBarberId,
-      nextBarberId: input.nextBarberId,
+      prevStaffId: input.prevStaffId,
+      nextStaffId: input.nextStaffId,
       createdAt: new Date().toISOString()
     };
 

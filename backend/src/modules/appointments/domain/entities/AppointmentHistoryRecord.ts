@@ -17,7 +17,7 @@ export type AppointmentHistoryRecord = {
   nextStartAt?: string;
   prevEndAt?: string;
   nextEndAt?: string;
-  prevBarberId?: string;
-  nextBarberId?: string;
+  prevStaffId?: string;
+  nextStaffId?: string;
   createdAt: string;
 };

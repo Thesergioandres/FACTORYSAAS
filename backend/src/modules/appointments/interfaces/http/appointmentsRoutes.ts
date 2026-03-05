@@ -32,12 +32,12 @@ export function createAppointmentsRoutes({
 }) {
   const router = Router();
 
-  router.get('/', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER', 'CLIENT'), async (req: Request, res: Response) => {
+  router.get('/', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF', 'CLIENT'), async (req: Request, res: Response) => {
     const requesterRole = req.auth?.role;
     const requesterId = req.auth?.sub;
 
     const clientId = requesterRole === 'CLIENT' ? requesterId : (typeof req.query.clientId === 'string' ? req.query.clientId : undefined);
-    const barberId = requesterRole === 'BARBER' ? requesterId : (typeof req.query.barberId === 'string' ? req.query.barberId : undefined);
+    const staffId = requesterRole === 'STAFF' ? requesterId : (typeof req.query.staffId === 'string' ? req.query.staffId : undefined);
 
     const startFromRaw = typeof req.query.startFrom === 'string' ? new Date(req.query.startFrom) : undefined;
     const startToRaw = typeof req.query.startTo === 'string' ? new Date(req.query.startTo) : undefined;
@@ -49,7 +49,7 @@ export function createAppointmentsRoutes({
 
     const appointments = await appointmentsRepository.list(tenantId!, {
       clientId,
-      barberId,
+      staffId,
       startFrom,
       startTo
     });
@@ -83,7 +83,7 @@ export function createAppointmentsRoutes({
     return res.status(201).json(result.appointment);
   });
 
-  router.patch('/:id/status', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER'), async (req: Request, res: Response) => {
+  router.patch('/:id/status', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
     if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
 
@@ -146,7 +146,7 @@ export function createAppointmentsRoutes({
     const result = await reassignAppointmentUseCase.execute({
       tenantId,
       appointmentId: req.params.id,
-      newBarberId: (req.body as { newBarberId?: string })?.newBarberId,
+      newStaffId: (req.body as { newStaffId?: string })?.newStaffId,
       actorRole: req.auth?.role,
       actorUserId: req.auth?.sub
     });
@@ -158,7 +158,7 @@ export function createAppointmentsRoutes({
     return res.json(result.appointment);
   });
 
-  router.get('/:id/history', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'BARBER', 'CLIENT'), async (req: Request, res: Response) => {
+  router.get('/:id/history', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF', 'CLIENT'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
     if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
 
@@ -173,7 +173,7 @@ export function createAppointmentsRoutes({
       return res.status(403).json({ message: 'No autorizado para ver este historial' });
     }
 
-    if (requesterRole === 'BARBER' && appointment.barberId !== requesterId) {
+    if (requesterRole === 'STAFF' && appointment.staffId !== requesterId) {
       return res.status(403).json({ message: 'No autorizado para ver este historial' });
     }
 

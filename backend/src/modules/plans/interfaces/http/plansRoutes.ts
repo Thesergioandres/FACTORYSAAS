@@ -23,7 +23,7 @@ export function createPlansRoutes({
     const payload = (req.body || {}) as {
       price?: number;
       maxBranches?: number;
-      maxBarbers?: number;
+      maxStaff?: number;
       maxMonthlyAppointments?: number;
       features?: string[];
     };
