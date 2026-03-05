@@ -5,7 +5,7 @@ import { AdminNav } from '../components/AdminNav';
 type Appointment = {
   id: string;
   clientId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: string;
   endAt: string;
@@ -25,14 +25,14 @@ type HistoryItem = {
   nextStatus?: string;
   prevStartAt?: string;
   nextStartAt?: string;
-  prevBarberId?: string;
-  nextBarberId?: string;
+  prevStaffId?: string;
+  nextStaffId?: string;
   createdAt: string;
 };
 
 export function AdminAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [barbers, setBarbers] = useState<User[]>([]);
+  const [staff, setStaff] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -50,19 +50,19 @@ export function AdminAppointmentsPage() {
     }
   };
 
-  const loadBarbers = async () => {
-    const data = await apiRequest<User[]>('/users/public/barbers');
-    setBarbers(data);
+  const loadStaff = async () => {
+    const data = await apiRequest<User[]>('/users/public/staff');
+    setStaff(data);
   };
 
   useEffect(() => {
     loadAppointments();
-    loadBarbers();
+    loadStaff();
   }, []);
 
-  const barbersMap = useMemo(() => {
-    return new Map(barbers.map((barber) => [barber.id, barber.name]));
-  }, [barbers]);
+  const staffMap = useMemo(() => {
+    return new Map(staff.map((member) => [member.id, member.name]));
+  }, [staff]);
 
   const updateStatus = async (id: string, nextStatus: string) => {
     setError(null);
@@ -100,12 +100,12 @@ export function AdminAppointmentsPage() {
     }
   };
 
-  const reassignAppointment = async (id: string, newBarberId: string) => {
+  const reassignAppointment = async (id: string, newStaffId: string) => {
     setError(null);
     try {
       await apiRequest(`/appointments/${id}/reassign`, {
         method: 'POST',
-        body: JSON.stringify({ newBarberId })
+        body: JSON.stringify({ newStaffId })
       });
       await loadAppointments();
     } catch (err) {
@@ -158,7 +158,7 @@ export function AdminAppointmentsPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="font-semibold">{new Date(appointment.startAt).toLocaleString()}</p>
-                <p className="text-xs text-zinc-400">Barbero: {barbersMap.get(appointment.barberId) || appointment.barberId}</p>
+                <p className="text-xs text-zinc-400">Staff: {staffMap.get(appointment.staffId) || appointment.staffId}</p>
                 <p className="text-xs text-zinc-400">Estado: {appointment.status}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -206,10 +206,10 @@ export function AdminAppointmentsPage() {
                 }}
                 defaultValue=""
               >
-                <option value="">Reasignar barbero</option>
-                {barbers.map((barber) => (
-                  <option key={barber.id} value={barber.id}>
-                    {barber.name}
+                <option value="">Reasignar staff</option>
+                {staff.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
                   </option>
                 ))}
               </select>
@@ -234,7 +234,7 @@ export function AdminAppointmentsPage() {
                 <p className="font-semibold">{item.action}</p>
                 {item.nextStatus ? <p>Estado: {item.prevStatus} → {item.nextStatus}</p> : null}
                 {item.nextStartAt ? <p>Fecha: {item.prevStartAt} → {item.nextStartAt}</p> : null}
-                {item.nextBarberId ? <p>Barbero: {item.prevBarberId} → {item.nextBarberId}</p> : null}
+                {item.nextStaffId ? <p>Staff: {item.prevStaffId} → {item.nextStaffId}</p> : null}
               </li>
             ))}
           </ul>

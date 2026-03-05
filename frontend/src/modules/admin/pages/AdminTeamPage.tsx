@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
-type BarberRecord = {
+type StaffRecord = {
   id: string;
   name: string;
   email?: string;
@@ -10,7 +10,7 @@ type BarberRecord = {
 };
 
 export function AdminTeamPage() {
-  const [barbers, setBarbers] = useState<BarberRecord[]>([]);
+  const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [drafts, setDrafts] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<{
@@ -22,12 +22,12 @@ export function AdminTeamPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    apiRequest<BarberRecord[]>('/users?role=BARBER')
+    apiRequest<StaffRecord[]>('/users?role=STAFF')
       .then((data) => {
-        setBarbers(data);
+        setStaff(data);
         setDrafts(
-          data.reduce<Record<string, number>>((acc, barber) => {
-            acc[barber.id] = barber.commissionRate ?? 0.3;
+          data.reduce<Record<string, number>>((acc, member) => {
+            acc[member.id] = member.commissionRate ?? 0.3;
             return acc;
           }, {})
         );
@@ -40,12 +40,12 @@ export function AdminTeamPage() {
     setDrafts((prev) => ({ ...prev, [id]: Number.isNaN(rate) ? 0 : rate }));
   };
 
-  const openConfirm = (barber: BarberRecord) => {
-    const nextRate = Number(drafts[barber.id] ?? 0);
+  const openConfirm = (member: StaffRecord) => {
+    const nextRate = Number(drafts[member.id] ?? 0);
     setPending({
-      id: barber.id,
-      name: barber.name,
-      previousRate: barber.commissionRate ?? 0,
+      id: member.id,
+      name: member.name,
+      previousRate: member.commissionRate ?? 0,
       nextRate
     });
   };
@@ -60,11 +60,11 @@ export function AdminTeamPage() {
         method: 'PATCH',
         body: JSON.stringify({ commissionRate: Number(pending.nextRate) })
       });
-      setBarbers((prev) =>
-        prev.map((barber) =>
-          barber.id === pending.id
-            ? { ...barber, commissionRate: pending.nextRate }
-            : barber
+      setStaff((prev) =>
+        prev.map((member) =>
+          member.id === pending.id
+            ? { ...member, commissionRate: pending.nextRate }
+            : member
         )
       );
       setPending(null);
@@ -95,11 +95,11 @@ export function AdminTeamPage() {
         <div className="app-card">
           <h3 className="text-lg font-semibold">Comisiones por especialista</h3>
           <div className="mt-4 space-y-3">
-            {barbers.map((barber) => (
-              <div key={barber.id} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
+            {staff.map((member) => (
+              <div key={member.id} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold">{barber.name}</p>
-                  <p className="text-xs text-muted">{barber.email || 'Sin email'}</p>
+                  <p className="text-sm font-semibold">{member.name}</p>
+                  <p className="text-xs text-muted">{member.email || 'Sin email'}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -108,10 +108,10 @@ export function AdminTeamPage() {
                     min={0}
                     max={1}
                     step={0.05}
-                    value={drafts[barber.id] ?? 0.3}
-                    onChange={(event) => updateRate(barber.id, event.target.value)}
+                    value={drafts[member.id] ?? 0.3}
+                    onChange={(event) => updateRate(member.id, event.target.value)}
                   />
-                  <button className="btn-secondary" type="button" onClick={() => openConfirm(barber)}>
+                  <button className="btn-secondary" type="button" onClick={() => openConfirm(member)}>
                     Guardar
                   </button>
                 </div>

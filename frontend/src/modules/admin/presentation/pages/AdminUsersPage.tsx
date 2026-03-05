@@ -8,7 +8,7 @@ type User = {
   name: string;
   email: string;
   phone: string;
-  role: 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT';
   active: boolean;
   whatsappConsent: boolean;
   approved: boolean;
@@ -18,7 +18,7 @@ export function AdminUsersPage() {
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'BARBER', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'STAFF', password: '' });
 
   const loadUsers = async () => {
     try {
@@ -41,7 +41,7 @@ export function AdminUsersPage() {
         method: 'POST',
         body: JSON.stringify(form)
       });
-      setForm({ name: '', email: '', phone: '', role: 'BARBER', password: '' });
+      setForm({ name: '', email: '', phone: '', role: 'STAFF', password: '' });
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear usuario');
@@ -75,7 +75,7 @@ export function AdminUsersPage() {
     <section className="space-y-6">
       <header className="app-card">
         <h2 className="section-title">Usuarios</h2>
-        <p className="section-subtitle">Gestiona barberos, clientes y administradores.</p>
+        <p className="section-subtitle">Gestiona staff, clientes y administradores.</p>
       </header>
 
       <AdminNav />
@@ -121,7 +121,7 @@ export function AdminUsersPage() {
             onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value }))}
           >
             {user?.role === 'GOD' ? <option value="GOD">God</option> : null}
-            <option value="BARBER">Barbero</option>
+            <option value="STAFF">Staff</option>
             <option value="CLIENT">Cliente</option>
             <option value="ADMIN">Admin</option>
           </select>
@@ -160,7 +160,7 @@ export function AdminUsersPage() {
                 >
                   {user?.role === 'GOD' ? <option value="GOD">GOD</option> : null}
                   <option value="ADMIN">ADMIN</option>
-                  <option value="BARBER">BARBER</option>
+                  <option value="STAFF">STAFF</option>
                   <option value="CLIENT">CLIENT</option>
                 </select>
                 <button

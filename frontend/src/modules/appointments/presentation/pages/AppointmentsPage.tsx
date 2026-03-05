@@ -7,7 +7,7 @@ import { LoginCard } from '../../../../shared/components/LoginCard';
 type User = {
   id: string;
   name: string;
-  role: 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT';
   email?: string;
   approved?: boolean;
 };
@@ -19,10 +19,10 @@ type Service = {
 
 export function AppointmentsPage() {
   const { user: sessionUser, logout, loading: sessionLoading } = useAuth();
-  const [barbers, setBarbers] = useState<User[]>([]);
+  const [staff, setStaff] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [branchId, setBranchId] = useState('default_branch');
-  const [barberId, setBarberId] = useState('');
+  const [staffId, setStaffId] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [startAt, setStartAt] = useState('');
   const [notes, setNotes] = useState('');
@@ -30,16 +30,16 @@ export function AppointmentsPage() {
 
   useEffect(() => {
     async function loadOptions() {
-      const [barbersData, servicesData] = await Promise.all([
-        apiRequest<User[]>('/users/public/barbers'),
+      const [staffData, servicesData] = await Promise.all([
+        apiRequest<User[]>('/users/public/staff'),
         apiRequest<Service[]>('/services?onlyActive=true')
       ]);
 
-      setBarbers(barbersData);
+      setStaff(staffData);
       setServices(servicesData);
 
-      if (barbersData[0]) {
-        setBarberId(barbersData[0].id);
+      if (staffData[0]) {
+        setStaffId(staffData[0].id);
       }
 
       if (servicesData[0]) {
@@ -52,13 +52,13 @@ export function AppointmentsPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!startAt || !barberId || !serviceId || !branchId) {
+    if (!startAt || !staffId || !serviceId || !branchId) {
       return;
     }
 
     await addAppointment({
       branchId,
-      barberId,
+      staffId,
       serviceId,
       startAt: new Date(startAt).toISOString(),
       notes
@@ -102,16 +102,16 @@ export function AppointmentsPage() {
         </label>
 
         <label className="text-xs text-zinc-400">
-          Barbero
+          Staff
           <select
             className="select-field mt-2"
-            value={barberId}
-            onChange={(event) => setBarberId(event.target.value)}
+            value={staffId}
+            onChange={(event) => setStaffId(event.target.value)}
             disabled={!sessionUser || sessionLoading}
           >
-            {barbers.map((barber) => (
-              <option key={barber.id} value={barber.id}>
-                {barber.name}
+            {staff.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
               </option>
             ))}
           </select>

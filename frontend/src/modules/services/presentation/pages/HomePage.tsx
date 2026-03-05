@@ -15,9 +15,9 @@ export function HomePage() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="app-card space-y-5">
           <p className="app-chip">Experiencia premium</p>
-          <h1 className="text-4xl font-semibold">Barberia Essence</h1>
+          <h1 className="text-4xl font-semibold">ESSENCE SOFTWARE FACTORY</h1>
           <p className="text-sm text-zinc-300">
-            Controla tu agenda, tu equipo y tus clientes con una experiencia moderna, rapida y lista para escalar.
+            Gestiona turnos, profesionales y clientes con una experiencia moderna, rapida y lista para escalar.
           </p>
           <div className="flex flex-wrap gap-3">
             <a className="btn-primary" href="/appointments">
@@ -44,7 +44,7 @@ export function HomePage() {
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <p className="text-sm font-semibold">Seguridad por rol</p>
-              <p className="text-xs text-zinc-400">GOD, admin, barbero y cliente con permisos claros.</p>
+              <p className="text-xs text-zinc-400">GOD, Admin, Staff y Cliente con permisos claros.</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <p className="text-sm font-semibold">Operacion sin friccion</p>

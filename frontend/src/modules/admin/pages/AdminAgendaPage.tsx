@@ -1,8 +1,10 @@
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { useAgenda } from '../hooks/useAgenda';
+import { useLabels } from '../../../shared/hooks/useLabels';
 
 export function AdminAgendaPage() {
   const { data, isLoading, isError } = useAgenda();
+  const labels = useLabels();
 
   return (
     <section className="space-y-6">
@@ -28,7 +30,7 @@ export function AdminAgendaPage() {
               <div>
                 <p className="text-sm text-muted">{item.startTime}</p>
                 <p className="text-lg font-semibold">{item.clientName}</p>
-                <p className="text-sm text-muted">{item.serviceName} · {item.barberName}</p>
+                <p className="text-sm text-muted">{item.serviceName} · {labels.staff}: {item.staffName}</p>
               </div>
               <span className="status-pill">{item.status}</span>
             </div>

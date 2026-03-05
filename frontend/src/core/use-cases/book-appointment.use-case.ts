@@ -2,7 +2,7 @@ import { Appointment } from '../domain/models/Appointment';
 
 export interface BookAppointmentInput {
   serviceId: string;
-  barberId: string;
+  staffId: string;
   clientId: string;
   startAt: string;
 }

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { apiRequest } from '../../../../shared/infrastructure/http/apiClient';
 import { useAuth } from '../../../../shared/context/AuthContext';
+import { useLabels } from '../../../../shared/hooks/useLabels';
 
 type Appointment = {
   id: string;
@@ -23,8 +24,9 @@ type Block = {
   reason?: string;
 };
 
-export function BarberDashboardPage() {
+export function StaffDashboardPage() {
   const { user } = useAuth();
+  const labels = useLabels();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -37,8 +39,8 @@ export function BarberDashboardPage() {
     try {
       const [appointmentsData, schedulesData, blocksData] = await Promise.all([
         apiRequest<Appointment[]>('/appointments'),
-        apiRequest<Schedule[]>(`/barbers/${user.id}/schedules`),
-        apiRequest<Block[]>(`/barbers/${user.id}/blocks`)
+        apiRequest<Schedule[]>(`/staff/${user.id}/schedules`),
+        apiRequest<Block[]>(`/staff/${user.id}/blocks`)
       ]);
       setAppointments(appointmentsData);
       setSchedules(schedulesData);
@@ -49,7 +51,7 @@ export function BarberDashboardPage() {
   };
 
   useEffect(() => {
-    if (user?.role === 'BARBER') {
+    if (user?.role === 'STAFF') {
       loadAll();
     }
   }, [user]);
@@ -65,7 +67,7 @@ export function BarberDashboardPage() {
   const saveSchedule = async (event: FormEvent) => {
     event.preventDefault();
     if (!user) return;
-    await apiRequest(`/barbers/${user.id}/schedules`, {
+    await apiRequest(`/staff/${user.id}/schedules`, {
       method: 'POST',
       body: JSON.stringify(scheduleForm)
     });
@@ -75,7 +77,7 @@ export function BarberDashboardPage() {
   const addBlock = async (event: FormEvent) => {
     event.preventDefault();
     if (!user) return;
-    await apiRequest(`/barbers/${user.id}/blocks`, {
+    await apiRequest(`/staff/${user.id}/blocks`, {
       method: 'POST',
       body: JSON.stringify({
         startAt: new Date(blockForm.startAt).toISOString(),
@@ -87,11 +89,11 @@ export function BarberDashboardPage() {
     await loadAll();
   };
 
-  if (!user || user.role !== 'BARBER') {
+  if (!user || user.role !== 'STAFF') {
     return (
       <section className="app-card">
-        <h2 className="section-title">Panel barbero</h2>
-        <p className="section-subtitle">Disponible solo para barberos autenticados.</p>
+        <h2 className="section-title">Panel {labels.staff}</h2>
+        <p className="section-subtitle">Disponible solo para {labels.staff.toLowerCase()} autenticado.</p>
       </section>
     );
   }
@@ -99,8 +101,8 @@ export function BarberDashboardPage() {
   return (
     <section className="space-y-6">
       <header className="app-card">
-        <h2 className="section-title">Agenda del barbero</h2>
-        <p className="section-subtitle">Gestiona disponibilidad y estado de citas.</p>
+        <h2 className="section-title">Agenda de {labels.staffPlural}</h2>
+        <p className="section-subtitle">Gestiona disponibilidad y estado de {labels.appointment.toLowerCase()}s.</p>
       </header>
 
       {error ? <p className="app-card-soft text-red-200">{error}</p> : null}
@@ -185,7 +187,7 @@ export function BarberDashboardPage() {
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Citas asignadas</h3>
+        <h3 className="text-lg font-semibold">{labels.appointment}s asignadas</h3>
         {appointments.map((appointment) => (
           <div key={appointment.id} className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <p className="font-semibold">{new Date(appointment.startAt).toLocaleString()}</p>

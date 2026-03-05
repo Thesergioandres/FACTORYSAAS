@@ -4,7 +4,7 @@ import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 export type AgendaItem = {
   id: string;
   clientName: string;
-  barberName: string;
+  staffName: string;
   serviceName: string;
   startTime: string;
   status: string;

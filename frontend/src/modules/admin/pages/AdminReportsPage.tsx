@@ -12,8 +12,8 @@ import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 import { DateRangePicker } from '../../../shared/components/DateRangePicker';
 
 type CommissionItem = {
-  barberId: string;
-  barberName: string;
+  staffId: string;
+  staffName: string;
   rate: number;
   total: number;
   appointments: number;
@@ -135,7 +135,7 @@ export function AdminReportsPage() {
 
     report.commissions.forEach((item) => {
       rows.push([
-        item.barberName,
+        item.staffName,
         item.appointments,
         `${Math.round(item.rate * 100)}%`,
         item.total.toFixed(2)
@@ -255,9 +255,9 @@ export function AdminReportsPage() {
             ) : (
               <div className="mt-4 space-y-3">
                 {report.commissions.map((item) => (
-                  <div key={item.barberId} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
+                  <div key={item.staffId} className="app-card-soft flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold">{item.barberName}</p>
+                      <p className="text-sm font-semibold">{item.staffName}</p>
                       <p className="text-xs text-muted">{Math.round(item.rate * 100)}% · {item.appointments} citas</p>
                     </div>
                     <div className="text-right">

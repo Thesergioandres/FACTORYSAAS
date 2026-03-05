@@ -2,7 +2,7 @@ import type { Appointment } from '../entities/Appointment';
 
 export type CreateAppointmentInput = {
   branchId: string;
-  barberId: string;
+  staffId: string;
   serviceId: string;
   startAt: string;
   notes?: string;

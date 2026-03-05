@@ -7,6 +7,7 @@ export type TenantRecord = {
   id: string;
   name: string;
   slug: string;
+  verticalSlug?: string;
   planId?: string;
   planName?: string;
   subdomain?: string;
@@ -44,9 +45,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     document.title = nextTenant?.name ? `${nextTenant.name} - ESSENCE FACTORY SAAS` : 'ESSENCE FACTORY SAAS';
   }, []);
 
-  // Auto-resolve tenant for ADMIN or BARBER roles based on their tied tenantId
+  // Auto-resolve tenant for ADMIN or STAFF roles based on their tied tenantId
   useEffect(() => {
-    if (user && (user.role === 'ADMIN' || user.role === 'BARBER') && user.tenantId && !tenant) {
+    if (user && (user.role === 'ADMIN' || user.role === 'STAFF') && user.tenantId && !tenant) {
       setLoading(true);
       apiRequest<TenantRecord>(`/tenants/${user.tenantId}`)
         .then((data) => {

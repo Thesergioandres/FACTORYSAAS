@@ -1,6 +1,6 @@
 import { Queue, Worker, type Job } from 'bullmq';
 import mongoose from 'mongoose';
-import { redis } from '../config/redis';
+import { redisConnectionOptions } from '../config/redis';
 import { database } from '../shared/infrastructure/memory/database';
 import { isWithinQuietHours } from '../modules/appointments/domain/appointmentRules';
 import { WhatsAppLogModel } from '../shared/infrastructure/mongoose/models/WhatsAppLogModel';
@@ -14,8 +14,8 @@ type WhatsAppJob = {
   message: string;
 };
 
-const connection = redis.duplicate();
-export const whatsappQueue = new Queue<WhatsAppJob>('whatsapp-jobs', { connection });
+const connection = redisConnectionOptions;
+export const whatsappQueue = new Queue<WhatsAppJob, void, string>('whatsapp-jobs', { connection });
 
 function shouldSkipByQuietHours(now: Date) {
   return isWithinQuietHours(now, database.appConfig.quietHoursStart, database.appConfig.quietHoursEnd);

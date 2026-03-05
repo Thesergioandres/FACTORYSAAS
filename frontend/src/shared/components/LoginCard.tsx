@@ -6,14 +6,14 @@ type LoginCardProps = {
   title?: string;
   subtitle?: string;
   demoHint?: string;
-  allowedRoles?: Array<'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT'>;
+  allowedRoles?: Array<'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT'>;
   redirectTo?: string;
 };
 
 const defaultRedirectByRole = {
   GOD: '/god',
   ADMIN: '/admin',
-  BARBER: '/staff',
+  STAFF: '/staff/dashboard',
   CLIENT: '/'
 } as const;
 

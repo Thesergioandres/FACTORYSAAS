@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export function RoleGuard({ allow, children }: { allow: Array<'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT'>; children: ReactNode }) {
+export function RoleGuard({ allow, children }: { allow: Array<'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT'>; children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 

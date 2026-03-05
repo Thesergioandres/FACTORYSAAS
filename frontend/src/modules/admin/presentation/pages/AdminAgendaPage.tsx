@@ -4,12 +4,12 @@ import { AdminNav } from '../components/AdminNav';
 
 type Appointment = {
   id: string;
-  barberId: string;
+  staffId: string;
   startAt: string;
   status: string;
 };
 
-type Barber = {
+type StaffMember = {
   id: string;
   name: string;
 };
@@ -26,7 +26,7 @@ function startOfWeek(date: Date) {
 export function AdminAgendaPage() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => {
@@ -42,19 +42,19 @@ export function AdminAgendaPage() {
       const startTo = new Date(weekStart);
       startTo.setDate(startTo.getDate() + 7);
 
-      const [appointmentsData, barbersData] = await Promise.all([
+      const [appointmentsData, staffData] = await Promise.all([
         apiRequest<Appointment[]>(`/appointments?startFrom=${startFrom.toISOString()}&startTo=${startTo.toISOString()}`),
-        apiRequest<Barber[]>('/users/public/barbers')
+        apiRequest<StaffMember[]>('/users/public/staff')
       ]);
 
       setAppointments(appointmentsData);
-      setBarbers(barbersData);
+      setStaff(staffData);
     }
 
     load();
   }, [weekStart]);
 
-  const barberNames = useMemo(() => new Map(barbers.map((barber) => [barber.id, barber.name])), [barbers]);
+  const staffNames = useMemo(() => new Map(staff.map((member) => [member.id, member.name])), [staff]);
 
   return (
     <section className="space-y-6">
@@ -83,7 +83,7 @@ export function AdminAgendaPage() {
                 .map((appointment) => (
                   <li key={appointment.id} className="rounded-xl border border-white/10 bg-black/40 p-2">
                     <p>{new Date(appointment.startAt).toLocaleTimeString()}</p>
-                    <p className="text-zinc-400">{barberNames.get(appointment.barberId) || appointment.barberId}</p>
+                    <p className="text-zinc-400">{staffNames.get(appointment.staffId) || appointment.staffId}</p>
                     <p className="text-zinc-400">{appointment.status}</p>
                   </li>
                 ))}

@@ -20,7 +20,7 @@ import { AdminBranchesPage } from '../modules/admin/pages/AdminBranchesPage';
 import { AdminWhatsAppPage } from '../modules/admin/pages/AdminWhatsAppPage';
 import { AdminInventoryPage } from '../modules/admin/pages/AdminInventoryPage';
 import { AdminReportsPage } from '../modules/admin/pages/AdminReportsPage';
-import { StaffDashboardPage } from '../modules/staff/StaffDashboardPage';
+import { StaffDashboardPage } from '../modules/staff/presentation/pages/StaffDashboardPage';
 import { GodPanelPage } from '../modules/god/GodPanelPage';
 import { CreateBarbershopPage } from '../modules/onboarding/CreateBarbershopPage';
 import { AppLayout } from '../shared/layouts/AppLayout';
@@ -37,8 +37,8 @@ export function AppRouter() {
       ? '/god'
       : user.role === 'ADMIN'
         ? '/admin'
-        : user.role === 'BARBER'
-          ? '/staff'
+        : user.role === 'STAFF'
+          ? '/staff/dashboard'
           : '/login'
     : '/login';
 
@@ -56,7 +56,7 @@ export function AppRouter() {
           <LoginCard
             title="Acceso"
             subtitle="Usa tu cuenta para gestionar la plataforma."
-            allowedRoles={['ADMIN', 'BARBER', 'GOD']}
+            allowedRoles={['ADMIN', 'STAFF', 'GOD']}
           />
         } />
         <Route path="/waiting" element={<WaitingApprovalPage />} />
@@ -121,8 +121,12 @@ export function AppRouter() {
           />
           <Route
             path="/staff"
+            element={<Navigate to="/staff/dashboard" replace />}
+          />
+          <Route
+            path="/staff/dashboard"
             element={
-              <RoleGuard allow={['BARBER', 'ADMIN', 'GOD']}>
+              <RoleGuard allow={['STAFF', 'ADMIN', 'GOD']}>
                 <StaffDashboardPage />
               </RoleGuard>
             }
@@ -149,7 +153,7 @@ export function AppRouter() {
           <LoginCard
             title="Acceso barberias"
             subtitle="Login para duenos y staff."
-            allowedRoles={['ADMIN', 'BARBER']}
+            allowedRoles={['ADMIN', 'STAFF']}
           />
         } />
         <Route path="/barberias-client-login" element={<BarberiasClientLoginPage />} />

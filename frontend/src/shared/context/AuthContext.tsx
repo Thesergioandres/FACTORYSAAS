@@ -5,7 +5,7 @@ import { clearAuthToken, setAuthToken } from '../infrastructure/http/session';
 export type SessionUser = {
   id: string;
   name: string;
-  role: 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT';
   email?: string;
   approved?: boolean;
   tenantId?: string;

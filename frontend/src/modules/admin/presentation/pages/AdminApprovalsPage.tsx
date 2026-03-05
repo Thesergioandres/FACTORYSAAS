@@ -6,7 +6,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: 'GOD' | 'ADMIN' | 'BARBER' | 'CLIENT';
+  role: 'GOD' | 'ADMIN' | 'STAFF' | 'CLIENT';
   approved: boolean;
 };
 

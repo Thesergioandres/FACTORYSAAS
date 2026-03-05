@@ -22,7 +22,7 @@ type Plan = {
   name: string;
   price: number;
   maxBranches: number;
-  maxBarbers: number;
+  maxStaff: number;
   maxMonthlyAppointments: number;
   features: string[];
 };
@@ -95,7 +95,7 @@ export function AdminTenantsPage() {
         body: JSON.stringify({
           price: Number(draft.price),
           maxBranches: Number(draft.maxBranches),
-          maxBarbers: Number(draft.maxBarbers),
+          maxStaff: Number(draft.maxStaff),
           maxMonthlyAppointments: Number(draft.maxMonthlyAppointments),
           features: draft.features
         })
@@ -230,12 +230,12 @@ export function AdminTenantsPage() {
                       />
                     </label>
                     <label>
-                      Max Barberos
+                      Max Staff
                       <input
                         className="input-field mt-2"
                         type="number"
-                        value={draft.maxBarbers}
-                        onChange={(event) => updatePlanDraft(plan.id, { maxBarbers: Number(event.target.value) })}
+                        value={draft.maxStaff}
+                        onChange={(event) => updatePlanDraft(plan.id, { maxStaff: Number(event.target.value) })}
                       />
                     </label>
                     <label>

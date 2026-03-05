@@ -1,6 +1,6 @@
 import { Queue, Worker, type Job } from 'bullmq';
 import mongoose from 'mongoose';
-import { redis } from '../config/redis';
+import { redisConnectionOptions } from '../config/redis';
 import { env } from '../config/env';
 import { database } from '../shared/infrastructure/memory/database';
 import { AppointmentModel } from '../shared/infrastructure/mongoose/models/AppointmentModel';
@@ -12,7 +12,7 @@ import { ConsoleWhatsAppProvider } from '../modules/notifications/infrastructure
 import { InMemoryTenantsRepository } from '../modules/tenants/infrastructure/persistence/InMemoryTenantsRepository';
 import { MongoTenantsRepository } from '../modules/tenants/infrastructure/persistence/MongoTenantsRepository';
 
-const connection = redis.duplicate();
+const connection = redisConnectionOptions;
 export const reminderQueue = new Queue('reminder-jobs', { connection });
 
 const provider = env.whatsappProvider === 'bullmq'

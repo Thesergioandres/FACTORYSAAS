@@ -6,7 +6,7 @@ type Appointment = {
   id: string;
   startAt: string;
   status: string;
-  barberId: string;
+  staffId: string;
 };
 
 export function ClientDashboardPage() {

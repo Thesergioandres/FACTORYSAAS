@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useTenant } from '../../shared/context/TenantContext';
 
-const steps = ['Sede', 'Servicio', 'Barbero', 'Fecha'];
+const steps = ['Sede', 'Servicio', 'Staff', 'Fecha'];
 
 const options = {
   Sede: ['Centro', 'Norte', 'Sur'],
   Servicio: ['Fade premium', 'Barba express', 'Color'],
-  Barbero: ['Rafa', 'Leo', 'Mara'],
+  Staff: ['Rafa', 'Leo', 'Mara'],
   Fecha: ['Hoy 17:30', 'Manana 10:00', 'Sabado 12:30']
 };
 

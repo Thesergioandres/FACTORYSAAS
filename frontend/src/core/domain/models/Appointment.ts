@@ -1,6 +1,6 @@
 export interface Appointment {
   id: string;
-  barberId: string;
+  staffId: string;
   clientId: string;
   serviceId: string;
   startAt: string;
