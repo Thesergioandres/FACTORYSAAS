@@ -1,12 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import { BrandMark } from '../components/BrandMark';
 import { useTenant } from '../context/TenantContext';
+import { TopLoadingBar } from '../components/TopLoadingBar';
 
 export function BookingLayout() {
   const { tenant } = useTenant();
 
   return (
     <div className="app-shell">
+      <TopLoadingBar />
       <header className="app-header border-b backdrop-blur">
         <div className="app-container flex flex-wrap items-center justify-between gap-4 py-6">
           <div className="flex items-center gap-3">

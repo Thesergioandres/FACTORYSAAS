@@ -33,6 +33,11 @@ export function AdminHomePage() {
   const [hoursSaving, setHoursSaving] = useState(false);
   const [hoursError, setHoursError] = useState<string | null>(null);
   const [hoursSuccess, setHoursSuccess] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState('#00F0FF');
+  const [secondaryColor, setSecondaryColor] = useState('#8A2BE2');
+  const [brandSaving, setBrandSaving] = useState(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
+  const [brandSuccess, setBrandSuccess] = useState(false);
   const activeModules = tenant?.activeModules || [];
   const isBarbershop = (tenant?.verticalSlug || '').toLowerCase() === 'barberias';
 
@@ -88,6 +93,8 @@ export function AdminHomePage() {
         ? tenant.businessHours
         : createDefaultBusinessHours()
     );
+    setPrimaryColor(tenant.primaryColor || tenant.customColors?.primary || '#00F0FF');
+    setSecondaryColor(tenant.secondaryColor || tenant.customColors?.secondary || '#8A2BE2');
   }, [tenant]);
 
   const handleCopy = async () => {
@@ -172,6 +179,33 @@ export function AdminHomePage() {
       setHoursError(err.message || 'No se pudo guardar los horarios');
     } finally {
       setHoursSaving(false);
+    }
+  };
+
+  const handleSaveBrand = async () => {
+    if (!tenant?.id) return;
+    setBrandError(null);
+    setBrandSuccess(false);
+    setBrandSaving(true);
+    try {
+      const updated = await apiRequest<TenantRecord>(`/tenants/${tenant.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          primaryColor,
+          secondaryColor,
+          customColors: {
+            primary: primaryColor,
+            secondary: secondaryColor
+          }
+        })
+      });
+      setTenant(updated);
+      setBrandSuccess(true);
+      window.setTimeout(() => setBrandSuccess(false), 2500);
+    } catch (err: any) {
+      setBrandError(err.message || 'No se pudo guardar los colores');
+    } finally {
+      setBrandSaving(false);
     }
   };
 
@@ -271,6 +305,38 @@ export function AdminHomePage() {
               disabled={logoUploading}
             />
           </label>
+        </div>
+      </div>
+
+      <div className="app-card">
+        <h3 className="text-lg font-semibold">Paleta de marca</h3>
+        <p className="mt-2 text-sm text-muted">Define el color de acento y el resplandor del tenant.</p>
+        {brandError ? <p className="mt-3 text-sm text-secondary">{brandError}</p> : null}
+        {brandSuccess ? <p className="mt-3 text-sm text-primary">Colores guardados.</p> : null}
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <label className="text-xs text-muted">
+            Color de acento principal
+            <input
+              className="input-field mt-2 h-12 cursor-pointer border border-[#00F0FF]/40 bg-transparent p-2"
+              type="color"
+              value={primaryColor}
+              onChange={(event) => setPrimaryColor(event.target.value)}
+            />
+          </label>
+          <label className="text-xs text-muted">
+            Color de resplandor
+            <input
+              className="input-field mt-2 h-12 cursor-pointer border border-[#8A2BE2]/40 bg-transparent p-2"
+              type="color"
+              value={secondaryColor}
+              onChange={(event) => setSecondaryColor(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button className="btn-primary" type="button" onClick={handleSaveBrand} disabled={brandSaving}>
+            {brandSaving ? 'Guardando...' : 'Guardar colores'}
+          </button>
         </div>
       </div>
 

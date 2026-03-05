@@ -109,6 +109,23 @@ export function VerticalLandingPage() {
     meta.setAttribute('content', description);
   }, [vertical]);
 
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll('.reveal-on-scroll')) as HTMLElement[];
+    if (elements.length === 0) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [vertical]);
+
   if (!vertical) {
     return (
       <section className="app-card">
@@ -133,12 +150,12 @@ export function VerticalLandingPage() {
 
   return (
     <section className="space-y-16">
-      <div className="app-card relative overflow-hidden p-10">
+      <div className="app-card relative overflow-hidden p-10 reveal-on-scroll">
         {isReady ? (
           <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_40%_40%,rgba(0,240,255,0.7),transparent_65%)] blur-2xl" />
         ) : null}
         <p className="app-chip">Solucion integral</p>
-        <h1 className="mt-6 text-4xl font-semibold md:text-5xl">
+        <h1 className="mt-6 text-4xl font-semibold md:text-5xl brand-gradient-text">
           Solucion Integral para {vertical.name}
         </h1>
         <p className="mt-4 text-sm text-muted">
@@ -160,10 +177,12 @@ export function VerticalLandingPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 reveal-on-scroll">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold">Modulos incluidos</h2>
+            <h2 className="text-2xl font-semibold brand-gradient-text">
+              Modulos incluidos
+            </h2>
             <p className="mt-2 text-sm text-muted">Diseñados para operar cada punto critico del negocio.</p>
           </div>
           <span className="text-xs uppercase tracking-[0.3em] text-muted">
@@ -174,7 +193,7 @@ export function VerticalLandingPage() {
           {modules.map((module) => (
             <div
               key={module.key}
-              className="rounded-3xl border border-[rgba(138,43,226,0.35)] bg-[#0b1224]/70 p-6 backdrop-blur-[18px]"
+              className="rounded-3xl border border-[rgba(138,43,226,0.35)] bg-[#0b1224]/70 p-6 backdrop-blur-[18px] mirror-card hover-lift reveal-on-scroll"
             >
               <h3 className="text-lg font-semibold text-ink">{module.label}</h3>
               <p className="mt-3 text-sm text-muted">{module.description}</p>
@@ -183,9 +202,11 @@ export function VerticalLandingPage() {
         </div>
       </div>
 
-      <div className="app-card flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+      <div className="app-card flex flex-col items-start justify-between gap-6 md:flex-row md:items-center reveal-on-scroll">
         <div>
-          <h2 className="text-2xl font-semibold">Lanza tu vertical con marca propia</h2>
+          <h2 className="text-2xl font-semibold brand-gradient-text">
+            Lanza tu vertical con marca propia
+          </h2>
           <p className="mt-2 text-sm text-muted">
             Activa tu entorno en minutos con la configuracion ideal para {vertical.name.toLowerCase()}.
           </p>

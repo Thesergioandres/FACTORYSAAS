@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../../shared/infrastructure/http/apiClient';
@@ -30,10 +30,27 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
 
   const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
 
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll('.reveal-on-scroll')) as HTMLElement[];
+    if (elements.length === 0) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [tenant?.id]);
+
   if (hasAgenda) {
     return (
       <section className="space-y-6 bg-app text-app-text p-6 rounded-3xl">
-        <header className="app-card">
+        <header className="app-card reveal-on-scroll">
           <div className="flex flex-wrap items-center gap-3">
             {tenant?.logoUrl ? (
               <img
@@ -44,14 +61,18 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
             ) : null}
             <div>
               <p className="app-chip">{tenant?.name || 'Tu negocio'}</p>
-              <h2 className="mt-3 text-3xl font-semibold">Portal de reservas</h2>
+              <h2 className="mt-3 text-3xl font-semibold brand-gradient-text">
+                Portal de reservas
+              </h2>
               <p className="mt-2 text-sm text-muted">Agenda tu servicio en segundos.</p>
             </div>
           </div>
         </header>
 
-        <div className="app-card">
-          <h3 className="text-lg font-semibold">Comienza tu reserva</h3>
+        <div className="app-card reveal-on-scroll">
+          <h3 className="text-lg font-semibold brand-gradient-text">
+            Comienza tu reserva
+          </h3>
           <p className="mt-2 text-sm text-muted">Selecciona servicio, staff y horario disponible.</p>
           <Link className="btn-primary mt-6" to="/booking">
             Reservar ahora
@@ -64,7 +85,7 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
   if (hasInventory) {
     return (
       <section className="space-y-6 bg-app text-app-text p-6 rounded-3xl">
-        <header className="app-card">
+        <header className="app-card reveal-on-scroll">
           <div className="flex flex-wrap items-center gap-3">
             {tenant?.logoUrl ? (
               <img
@@ -75,7 +96,9 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
             ) : null}
             <div>
               <p className="app-chip">{tenant?.name || 'Tu negocio'}</p>
-              <h2 className="mt-3 text-3xl font-semibold">Catalogo disponible</h2>
+              <h2 className="mt-3 text-3xl font-semibold brand-gradient-text">
+                Catalogo disponible
+              </h2>
               <p className="mt-2 text-sm text-muted">Productos destacados y stock actualizado.</p>
             </div>
           </div>
@@ -90,7 +113,7 @@ export function TenantPublicHome({ tenant }: TenantPublicHomeProps) {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
-              <div key={product.id} className="app-card-soft flex flex-col gap-3">
+              <div key={product.id} className="app-card-soft flex flex-col gap-3 mirror-card hover-lift reveal-on-scroll">
                 <div className="h-36 w-full overflow-hidden rounded-2xl bg-black/20">
                   {product.imageUrl ? (
                     <img

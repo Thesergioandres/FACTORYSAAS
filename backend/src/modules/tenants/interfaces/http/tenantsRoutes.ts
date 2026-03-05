@@ -145,15 +145,32 @@ export function createTenantsRoutes(deps: {
       return res.status(403).json({ message: 'No autorizado para este tenant' });
     }
 
-    const { businessHours } = req.body as {
+    const { businessHours, customColors, primaryColor, secondaryColor } = req.body as {
       businessHours?: Array<{ day: number; openTime: string; closeTime: string; isOpen: boolean }>;
+      customColors?: { primary?: string; secondary?: string };
+      primaryColor?: string;
+      secondaryColor?: string;
     };
 
-    if (!businessHours || !Array.isArray(businessHours)) {
-      return res.status(400).json({ message: 'businessHours es requerido' });
+    if (businessHours && !Array.isArray(businessHours)) {
+      return res.status(400).json({ message: 'businessHours debe ser un array' });
     }
 
-    const updated = await deps.tenantsRepository.update(req.params.id, { businessHours });
+    const nextCustomColors = customColors || (primaryColor || secondaryColor)
+      ? {
+          primary: primaryColor ?? customColors?.primary,
+          secondary: secondaryColor ?? customColors?.secondary
+        }
+      : undefined;
+
+    if (!businessHours && !nextCustomColors) {
+      return res.status(400).json({ message: 'No hay cambios para aplicar' });
+    }
+
+    const updated = await deps.tenantsRepository.update(req.params.id, {
+      ...(businessHours ? { businessHours } : {}),
+      ...(nextCustomColors ? { customColors: nextCustomColors } : {})
+    });
     if (!updated) {
       return res.status(404).json({ message: 'Tenant no encontrado' });
     }

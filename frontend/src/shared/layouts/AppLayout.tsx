@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
 import { BrandMark } from '../components/BrandMark';
 import { moduleRegistry } from '../constants/moduleRegistry';
+import { TopLoadingBar } from '../components/TopLoadingBar';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `app-navlink ${isActive ? 'border-secondary/60 text-secondary' : ''}`;
+  `app-navlink ${isActive ? 'app-navlink--active' : ''}`;
 
 export function AppLayout() {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
+      <TopLoadingBar />
       <header className="app-header border-b backdrop-blur">
         <div className="app-container flex flex-wrap items-center justify-between gap-4 py-6">
           <div className="flex items-center gap-3">
@@ -51,7 +53,7 @@ export function AppLayout() {
       </header>
 
       <div className="app-container">
-        <nav className="mt-6 flex flex-wrap gap-2">
+        <nav className="app-nav-surface mt-6 flex flex-wrap gap-2">
           {user?.role === 'ADMIN' || user?.role === 'OWNER' || user?.role === 'GOD' ? (
             <NavLink className={navLinkClass} to="/admin">
               Dashboard

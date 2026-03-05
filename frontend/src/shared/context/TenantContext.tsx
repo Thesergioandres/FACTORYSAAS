@@ -14,6 +14,8 @@ export type TenantRecord = {
   planName?: string;
   activeModules?: string[];
   subdomain?: string;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -37,23 +39,37 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [tenant, setTenantState] = useState<TenantRecord | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const injectBrandColors = useCallback((nextTenant: TenantRecord | null) => {
+    const root = document.documentElement;
+    const fallbackPrimary = '#00F0FF';
+    const fallbackSecondary = '#8A2BE2';
+    const primary = nextTenant?.primaryColor
+      || nextTenant?.customColors?.primary
+      || fallbackPrimary;
+    const secondary = nextTenant?.secondaryColor
+      || nextTenant?.customColors?.secondary
+      || fallbackSecondary;
+
+    root.style.setProperty('--primary', primary);
+    root.style.setProperty('--secondary', secondary);
+    root.style.setProperty('--glow-primary', `${primary}73`);
+    root.style.setProperty('--glow-secondary', `${secondary}73`);
+  }, []);
+
   const applyBranding = useCallback((nextTenant: TenantRecord | null) => {
     const root = document.documentElement;
     const verticalSlug = (nextTenant?.verticalSlug || '').toLowerCase();
     const verticalTheme = VERTICALS_REGISTRY.find((item) => item.slug === verticalSlug)?.theme;
     const background = verticalTheme?.background || '#0f1118';
     const text = verticalTheme?.text || '#f8fafc';
-    const primary = nextTenant?.customColors?.primary || verticalTheme?.primary || '#f4b41a';
-    const secondary = nextTenant?.customColors?.secondary || verticalTheme?.secondary || '#f9d784';
     const logoUrl = nextTenant?.logoUrl ? `url("${nextTenant.logoUrl}")` : 'none';
 
     root.style.setProperty('--bg-app', background);
     root.style.setProperty('--text-app', text);
-    root.style.setProperty('--primary', primary);
-    root.style.setProperty('--secondary', secondary);
     root.style.setProperty('--logo-url', logoUrl);
     document.title = nextTenant?.name ? `${nextTenant.name} - ESSENCE FACTORY SAAS` : 'ESSENCE FACTORY SAAS';
-  }, []);
+    injectBrandColors(nextTenant);
+  }, [injectBrandColors]);
 
   // Auto-resolve tenant for ADMIN/OWNER or STAFF roles based on their tied tenantId
   useEffect(() => {
