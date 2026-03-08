@@ -23,7 +23,7 @@ export function AdminNav() {
   const { tenant } = useTenant();
   const navRef = useRef<HTMLDivElement | null>(null);
   const activeModules = tenant?.activeModules || [];
-  const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables']);
+  const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables', 'kitchen_display']);
   const [activeLang, setActiveLang] = useState<'es' | 'en' | 'pt' | 'fr' | 'it' | 'de' | 'zh-CN'>('es');
 
   const godLinks = [

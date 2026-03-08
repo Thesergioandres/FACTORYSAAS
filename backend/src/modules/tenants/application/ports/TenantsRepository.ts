@@ -25,6 +25,7 @@ export interface TenantEntity {
   planName?: string;
   email?: string | null;
   phone?: string | null;
+  country?: string;
   customColors?: {
     primary?: string;
     secondary?: string;

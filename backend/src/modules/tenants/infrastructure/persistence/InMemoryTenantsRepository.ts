@@ -60,6 +60,7 @@ export class InMemoryTenantsRepository implements TenantsRepository {
     if (input.planName !== undefined) tenant.planName = input.planName;
     if (input.email !== undefined) tenant.email = input.email;
     if (input.phone !== undefined) tenant.phone = input.phone;
+    if (input.country !== undefined) tenant.country = input.country;
     if (input.validUntil !== undefined) tenant.validUntil = input.validUntil;
     if (input.customColors !== undefined) tenant.customColors = { ...input.customColors };
     if (input.logoUrl !== undefined) tenant.logoUrl = input.logoUrl;

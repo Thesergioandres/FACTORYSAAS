@@ -1,10 +1,21 @@
 import type { AppModule } from '../types/appModules';
 
+export type VerticalFamily =
+  | 'Wellness'
+  | 'Hosteleria'
+  | 'Retail'
+  | 'Profesionales'
+  | 'Educacion'
+  | 'Salud'
+  | 'General';
+
 export type VerticalConfig = {
   slug: string;
   name: string;
   activeModules: AppModule[];
   baseModules: AppModule[];
+  family: VerticalFamily;
+  exclusiveFeatures: string[];
   features: string[];
   theme?: {
     primary: string;
@@ -19,7 +30,50 @@ export type VerticalConfig = {
   };
 };
 
-export const VERTICALS_REGISTRY: VerticalConfig[] = [
+type VerticalSeed = Omit<VerticalConfig, 'family' | 'exclusiveFeatures'>;
+
+const VERTICAL_FAMILY_BY_SLUG: Record<string, VerticalFamily> = {
+  barberias: 'Wellness',
+  'salones-belleza': 'Wellness',
+  'estetica-avanzada': 'Wellness',
+  'spas-relajacion': 'Wellness',
+  'depilacion-laser': 'Wellness',
+  restaurantes: 'Hosteleria',
+  'discotecas-bares': 'Hosteleria',
+  farmacias: 'Retail',
+  ferreterias: 'Retail',
+  'tiendas-ropa-calzado': 'Retail',
+  'papelerias-librerias': 'Retail',
+  'regalos-floristerias': 'Retail',
+  'tiendas-conveniencia': 'Retail',
+  'despachos-abogados': 'Profesionales',
+  'arquitectos-ingenieros': 'Profesionales',
+  constructoras: 'Profesionales',
+  inmobiliarias: 'Profesionales',
+  'estudios-contables': 'Profesionales',
+  'colegios-universidades': 'Educacion',
+  'academias-idiomas': 'Educacion',
+  'escuelas-musica-arte': 'Educacion',
+  tutorias: 'Educacion',
+  clinicas: 'Salud',
+  'clinicas-odontologia': 'Salud',
+  psicologia: 'Salud',
+  veterinarias: 'Salud',
+  'veterinarias-campo': 'Salud'
+};
+
+const EXCLUSIVE_FEATURES_BY_SLUG: Record<string, string[]> = {
+  barberias: ['Tarjeta de sellos virtuales', 'Galeria de cortes (Antes/Despues)'],
+  restaurantes: ['Mapa interactivo de mesas', 'Division de cuentas (Split Bill)'],
+  'clinicas-odontologia': ['Odontograma digital', 'Seguimiento de ortodoncia'],
+  'despachos-abogados': ['Custodia de documentos con cifrado', 'Reloj de horas facturables'],
+  veterinarias: ['Ficha de mascota con carnet de vacunas', 'Geolocalizacion de fincas'],
+  inmobiliarias: ['Motor de publicacion en portales externos', 'Gestion de llaves'],
+  'colegios-universidades': ['Boletin de calificaciones', 'Portal de tareas para padres'],
+  'talleres-mecanicos': ['Historial de mantenimiento por placa', 'Ordenes de trabajo tecnicas']
+};
+
+const RAW_VERTICALS_REGISTRY: VerticalSeed[] = [
   {
     slug: 'barberias',
     name: 'Barberias',
@@ -1447,3 +1501,9 @@ export const VERTICALS_REGISTRY: VerticalConfig[] = [
     labels: { staff: 'Vendedor/Tienda', service: 'Publicacion', category: 'Departamento' }
   }
 ];
+
+export const VERTICALS_REGISTRY: VerticalConfig[] = RAW_VERTICALS_REGISTRY.map((vertical) => ({
+  ...vertical,
+  family: VERTICAL_FAMILY_BY_SLUG[vertical.slug] ?? 'General',
+  exclusiveFeatures: EXCLUSIVE_FEATURES_BY_SLUG[vertical.slug] ?? []
+}));

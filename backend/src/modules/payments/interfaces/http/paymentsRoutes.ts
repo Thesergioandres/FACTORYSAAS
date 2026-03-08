@@ -29,6 +29,21 @@ export function createPaymentsRoutes({
     return res.json(result);
   });
 
+  router.post('/create-subscription', authMiddleware, requireRolesMiddleware('ADMIN', 'OWNER', 'GOD'), async (req: Request, res: Response) => {
+    const tenantId = req.auth?.tenantId;
+    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+
+    const { planId, payerEmail } = (req.body || {}) as { planId?: string; payerEmail?: string };
+    if (!planId) return res.status(400).json({ message: 'planId es requerido' });
+
+    const result = await paymentsService.createSubscription({ tenantId, planId, payerEmail });
+    if ('error' in result) {
+      return res.status(result.statusCode).json({ message: result.error });
+    }
+
+    return res.json(result);
+  });
+
   router.post('/webhook', async (req: Request, res: Response) => {
     try {
       const result = await paymentsService.handleWebhook(req.body as { type?: string; topic?: string; data?: { id?: string } });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 
@@ -21,6 +21,24 @@ type CartItem = {
 
 export function AdminPOSPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [pendingSales, setPendingSales] = useState<CartItem[][]>([]);
+
+  const STORAGE_KEY = 'essence_pos_pending_sales';
+
+  const readQueue = () => {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [] as CartItem[][];
+    try {
+      return JSON.parse(raw) as CartItem[][];
+    } catch {
+      return [] as CartItem[][];
+    }
+  };
+
+  const writeQueue = (queue: CartItem[][]) => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+    setPendingSales(queue);
+  };
 
   const productsQuery = useQuery({
     queryKey: ['inventory', 'pos'],
@@ -35,6 +53,39 @@ export function AdminPOSPage() {
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cart]
   );
+
+  const syncPending = async () => {
+    const queue = readQueue();
+    if (!queue.length) return;
+    const remaining: CartItem[][] = [];
+
+    for (const items of queue) {
+      try {
+        await apiRequest('/pos/sales', {
+          method: 'POST',
+          body: JSON.stringify({
+            items,
+            paymentMethod: 'offline',
+            paymentStatus: 'PAGADA',
+            currency: 'COP'
+          })
+        });
+      } catch {
+        remaining.push(items);
+      }
+    }
+
+    writeQueue(remaining);
+  };
+
+  useEffect(() => {
+    writeQueue(readQueue());
+    const handleOnline = () => {
+      syncPending().catch(() => undefined);
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
@@ -56,11 +107,55 @@ export function AdminPOSPage() {
 
   const clearCart = () => setCart([]);
 
+  const submitSale = async () => {
+    if (!cart.length) return;
+    try {
+      await apiRequest('/pos/sales', {
+        method: 'POST',
+        body: JSON.stringify({
+          items: cart,
+          paymentMethod: 'cash',
+          paymentStatus: 'PAGADA',
+          currency: 'COP'
+        })
+      });
+      clearCart();
+    } catch {
+      const queue = readQueue();
+      queue.push(cart);
+      writeQueue(queue);
+      clearCart();
+    }
+  };
+
+  const sendToKitchen = async () => {
+    if (!cart.length) return;
+    try {
+      await apiRequest('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          tableLabel: 'Mostrador',
+          items: cart.map((item) => ({
+            name: item.name,
+            quantity: item.quantity
+          }))
+        })
+      });
+    } catch {
+      return;
+    }
+  };
+
   return (
     <section className="space-y-6">
       <header className="app-card">
         <h2 className="section-title">Punto de venta</h2>
         <p className="section-subtitle">Selecciona productos y cobra desde la caja.</p>
+        {pendingSales.length ? (
+          <p className="mt-3 text-xs text-secondary">
+            {pendingSales.length} ventas en cola por falta de conexion. Se sincronizaran al reconectar.
+          </p>
+        ) : null}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -117,9 +212,14 @@ export function AdminPOSPage() {
             <span className="text-xl font-semibold">$ {total}</span>
           </div>
 
-          <button className="btn-primary mt-4 w-full" type="button" onClick={clearCart} disabled={cart.length === 0}>
-            Cobrar
-          </button>
+          <div className="mt-4 grid gap-3">
+            <button className="btn-secondary w-full" type="button" onClick={sendToKitchen} disabled={cart.length === 0}>
+              Enviar a Cocina
+            </button>
+            <button className="btn-primary w-full" type="button" onClick={submitSale} disabled={cart.length === 0}>
+              Cobrar
+            </button>
+          </div>
         </div>
       </div>
     </section>

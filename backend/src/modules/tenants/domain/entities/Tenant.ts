@@ -8,6 +8,7 @@ type TenantProps = {
   planName?: string;
   email?: string | null;
   phone?: string | null;
+  country?: string;
   subdomain: string;
   verticalSlug: string;
   activeModules: string[];
@@ -60,6 +61,7 @@ export class Tenant {
   planName?: string;
   email?: string | null;
   phone?: string | null;
+  country?: string;
   subdomain: string;
   verticalSlug: string;
   activeModules: string[];
@@ -109,6 +111,7 @@ export class Tenant {
     this.planName = props.planName;
     this.email = props.email ?? null;
     this.phone = props.phone ?? null;
+    this.country = props.country;
     this.subdomain = props.subdomain;
     this.verticalSlug = props.verticalSlug;
     this.activeModules = props.activeModules;

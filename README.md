@@ -1,182 +1,156 @@
+# 💎 ESSENCE SOFTWARE FACTORY - Infraestructura SaaS Global
 
-# Barbería Fullstack - Plataforma de Gestión (Producción)
-
-Plataforma completa para la gestión integral de una barbería y sector de cuidado personal. Incluye agenda, notificaciones enviadas por WhatsApp, gestión de servicios, y paneles administrativos basados en roles (RBAC).
-Este repositorio contiene tanto el frontend como el backend desarrollados bajo un enfoque **modular** y con arquitectura limpia (Hexagonal en backend, Clean Architecture en frontend).
-
-## 🚀 Tecnologías Principales (Stack)
-
-### Frontend (Workspace `frontend`)
-
-- **Core**: React 19 + TypeScript
-- **Build Tool**: Vite 6
-- **Estilos**: Tailwind CSS 4
-- **Enrutamiento**: React Router 7
-- **Animaciones**: Framer Motion
-
-### Backend (Workspace `backend`)
-
-- **Core**: Node.js (>=18) + Express 4 + TypeScript
-- **Base de Datos**: MongoDB (Driver: Mongoose)
-- **Caché y Colas**: Redis + BullMQ (Opcional, para jobs en segundo plano)
-- **Seguridad y Autenticación**: JWT (JSON Web Tokens), bcryptjs, Helmet, Express Rate Limit
-- **Documentación de API**: Swagger (OpenAPI)
-
-### Infraestructura y Despliegue
-
-- **Producción Principal**: Railway (Hooks de despliegue configurados)
-- **Legacy o VPS**: Docker Compose + Nginx proxy
-- **CI/CD**: GitHub Actions
+**Vision:** La fabrica de software multi-tenant para 64 industrias, con marca propia, control por roles y motores operativos listos para escalar.
 
 ---
 
-## 🏗 Arquitectura del Proyecto
+## 🧭 Mapa General
 
-El proyecto está diseñado como un **Monorepo** gestionado con npm workspaces (`package.json` raíz). La comunicación entre front y back se da vía API REST.
-
-### Backend: Arquitectura Hexagonal y Diseño Modular
-
-Se ubica en `backend/src/modules`. Cada módulo de la aplicación está estrictamente separado en capas:
-
-- **`domain`**: Entidades core y reglas de negocio puras. Sin dependencias externas.
-- **`application`**: Casos de uso de la aplicación y definición de puertos (interfaces / contratos).
-- **`infrastructure`**: Implementación de los adaptadores (JWT, base de datos Mongo, repoditorios, drivers HTTP).
-- **`interfaces`**: Controladores de entrada/salida HTTP, middlewares locales y rutas Express.
-
-**Módulos del Backend:**
-
-1. **`appointments`**: Gestión completa de reservas. Permite agendar, reprogramar, cancelar, reasignar citas y revisar el historial.
-2. **`auth`**: Autenticación segura, recuperación de contraseñas, login y perfil.
-3. **`users`**: Gestión de usuarios, roles (RBAC), aprobaciones del administrador Dios (GOD) y controles de consentimiento corporativo (WhatsApp).
-4. **`barbers`**: Perfiles de barberos, disponibilidad de horarios, ausencias o bloqueos en agenda.
-5. **`services`**: Catálogo de servicios ofrecidos (cortes, barba, etc.) con sus precios y duración.
-6. **`notifications`**: Integración con proveedores de mensajería (WhatsApp), encolamiento de mensajes vía BullMQ y logs de envío.
-7. **`reports`**: Generación de reportes operativos y resúmenes financieros/estadísticos de la barbería.
-
-### Frontend: Clean Architecture Modular
-
-Se ubica en `frontend/src/modules`. Cada dominio visual y lógico sigue una estructura por capas para máximo desacoplamiento:
-
-- **`domain`**: Tipos, interfaces de entidades y modelos del frontend.
-- **`application`**: Lógica asíncrona, hooks de manejo de estado y casos de uso.
-- **`infrastructure`**: Clientes API, adaptadores de fetch, almacenamiento local.
-- **`presentation`**: Componentes UI, páginas completas, y hooks puramente visuales.
-
-**Módulos del Frontend:**
-
-1. **`admin`**: Páginas exclusivas para el rol GOD/ADMIN para gestión avanzada (aprobaciones pendentes, revisión general, reportes).
-2. **`appointments`**: Calendario interactivo, formulario de agendamiento y mis reservas.
-3. **`auth`**: Vistas de login, registro, olvidó su contraseña.
-4. **`barber`**: Panel del barbero para verificar sus citas próximas y gestionar disponibilidades.
-5. **`client`**: Panel del cliente regular para ver y gestionar sus propios cortes.
-6. **`services`**: Catálogo visual de servicios para el usuario y gestión para el administrador.
-7. **`users`**: UI del perfil de usuario y configuraciones.
-8. **`info`**: Páginas de información estática y soporte.
+| Tema | Descripcion |
+| --- | --- |
+| Proposito | Plataforma SaaS white-label multiindustria con despliegue rapido y crecimiento medible. |
+| Arquitectura | Monorepo con frontend (React) y backend (Node.js) desacoplados por API. |
+| Legal | La Politica de Tratamiento de Datos (PTD) es obligatoria en cualquier nuevo modulo que recolecte datos personales en Colombia. |
 
 ---
 
-## 🛡 Roles y Privilegios (RBAC)
+## 🧰 Stack Tecnologico
 
-El sistema soporta una jerarquía estricta de accesos:
-
-- **`GOD`**: Superadministrador. Acceso a reportes, aprobación de nuevos usuarios y control total.
-- **`ADMIN`**: Administrador de la sucursal.
-- **`BARBER`**: Profesional de la barbería. Puede ver y gestionar su agenda de turnos.
-- **`CLIENT`**: Cliente regular, puede agendar citas, reprogramar (según reglas) y cancelar.
-
-### Flujo de Aprobación de Usuarios
-
-1. Los nuevos usuarios se registran como inactivos/pendientes (`approved = false`).
-2. Tienen acceso únicamente a la vista de "sala de espera" (`/waiting`).
-3. El usuario `GOD` revisa la solicitud en el panel `/admin/approvals` y aprueba el acceso.
-4. Una vez aprobado, el usuario ingresa a su flujo normal (Client o Barber).
+| Capa | Stack |
+| --- | --- |
+| Frontend | React + TypeScript + Vite + Tailwind + GSAP |
+| Backend | Node.js + Express + TypeScript + Clean Architecture |
+| Datos | MongoDB (Mongoose) |
+| Observabilidad | Pino + logs estructurados |
 
 ---
 
-## 💻 Desarrollo Local
+## ⚙ Motores Core (Nuevos Modulos)
 
-### 1. Prerequisitos iniciales
+| Modulo | Rol operativo | Estado |
+| --- | --- | --- |
+| POS | Ventas, caja, cierres diarios, reportes | ✅ Base creada |
+| Mesas | Estados de mesas, turnos y flujo | ✅ Base creada |
+| Proyectos | Seguimiento, estados y entregables | ✅ Base creada |
+| Suscripciones | Control de planes y renovaciones | ✅ Base creada |
 
-Clona el repositorio e instala las dependencias usando npm (reconocerá los workspaces automáticamente):
+---
+
+## 🧱 Arquitectura (Resumen)
+
+```text
+frontend/         React + Vite + Tailwind + GSAP
+  src/modules/    Modulos por dominio
+backend/          Node.js + Express + TypeScript
+  src/modules/    Clean Architecture (domain/application/infrastructure/interfaces)
+```
+
+---
+
+## 🚀 Guia de Instalacion
+
+### 1) Instalacion global
 
 ```bash
 npm install
 ```
 
-### 2. Variables de entorno (Environment)
-
-Necesitas crear los archivos `.env` basándote en los templates proporcionados:
-
-- Copiar `backend/.env.example` -> `backend/.env`
-- Copiar `frontend/.env.example` -> `frontend/.env`
-
-**Principales Variables:**
-
-- **Backend:** `MONGODB_URI`, `JWT_SECRET`, `PORT`, `REDIS_URL` (opcional), `WHATSAPP_PROVIDER`. Configuración de reglas de negocio (`MIN_ADVANCE_MINUTES`, `CANCEL_LIMIT_MINUTES`).
-- **Frontend:** `VITE_API_BASE_URL` (Apunta a `http://localhost:4000/api` en desarrollo local).
-
-### 3. Levantar los Servicios
-
-El proyecto cuenta con scripts de concurrencia para arrancar ambos servicios simultáneamente:
+### 2) Backend
 
 ```bash
+cd backend
+npm install
 npm run dev
 ```
 
-Los servicios estarán disponibles en:
-
-- **Aplicación Web (Front)**: [http://localhost:5173](http://localhost:5173)
-- **API Server (Back)**: [http://localhost:4000](http://localhost:4000)
-- **Swagger Docs (Back)**: [http://localhost:4000/docs](http://localhost:4000/docs)
-
-_Alternativa para correr individualmente:_ `npm run dev:backend` o `npm run dev:frontend`.
-
----
-
-## 🐳 Docker (VPS o Legacy)
-
-Puedes correr toda la pila tecnológica localmente a través de contenedores:
+### 3) Frontend
 
 ```bash
-docker compose up --build
+cd frontend
+npm install
+npm run dev
 ```
 
-Servicios que levanta Docker Compose:
+### 4) Variables de entorno (.env)
 
-- **Nginx (proxy inverso)**: `http://localhost` (Maneja el frontend estático)
-- **Node.js Backend**: `http://localhost:4000`
-- **MongoDB**: Expuesto en puerto `27017`
-- **Redis**: Expuesto en puerto `6379`
+Crea los .env desde los templates y completa las variables clave:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+**Backend (.env)**
+```bash
+MONGODB_URI=mongodb://localhost:27017/factorysaas
+JWT_SECRET=change-me
+MP_ACCESS_TOKEN=***
+MP_WEBHOOK_URL=https://tu-dominio.com/api/payments/webhook
+MP_SUCCESS_URL=https://tu-dominio.com/ok
+MP_FAILURE_URL=https://tu-dominio.com/error
+MP_PENDING_URL=https://tu-dominio.com/pendiente
+MP_CURRENCY=COP
+CLOUDINARY_CLOUD_NAME=***
+CLOUDINARY_API_KEY=***
+CLOUDINARY_API_SECRET=***
+```
+
+**Frontend (.env)**
+```bash
+VITE_API_BASE_URL=http://localhost:4000/api
+```
 
 ---
 
-## ⚡ Colas y Procesador en Segundo Plano (Jobs / Redis)
+## 🧩 Rutas clave
 
-En desarrollo local, el sistema de jobs con BullMQ está desactivado por defecto para facilitar pruebas simples.
-Para habilitarlo (y simular el entorno de producción al 100%):
-
-1. Levantar una instancia local de Redis (o por el `docker-compose.yml`).
-2. Configurar en `backend/.env`:
-   - `ENABLE_JOBS=true`
-   - `REDIS_URL=redis://localhost:6379`
-   - `WHATSAPP_PROVIDER=bullmq` (o provider de producción en vez de `mock`).
+| Servicio | URL |
+| --- | --- |
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:4000/api |
+| Docs API | http://localhost:4000/docs |
 
 ---
 
-## 📝 Guía de Contribución y Buenas Prácticas
+## 🔐 Seguridad de Datos
 
-1. **Nueva Funcionalidad (Feature):** Crea un nuevo módulo bajo la filosofía modular. Backend en `backend/src/modules/{feature}` y frontend en `frontend/src/modules/{feature}`.
-2. **Dependencias Direccionales:** `interfaces` (o `presentation`) depende de `application`, y este último de `domain`. El dominio **nunca** debe importar librerías externas ni utilidades de infraestructura asíncronas.
-3. **Controladores delgados:** Mantén Express y React lo más enfocados en la vista/HTTP posible. Toda regla de negocio debe ir en los Use Cases de `application`.
-4. **Variables de Entorno:** Si agregas una llave nueva a `.env`, debes reflejarlo también en `.env.example`.
+- Passwords: bcrypt.
+- Transporte: TLS en produccion.
+- Backups: Google Cloud Storage.
+- PTD obligatoria en nuevos modulos que procesen datos personales en Colombia.
 
-## 📚 Documentación Adjunta de Referencia
+---
 
-Dentro del repositorio, se cuenta con material adicional:
+## 🛠 Desarrollo para Equipo
 
-- **`backend/README.md`**: Detalles profundos sobre configuraciones, seguridad y arquitectura del servidor.
-- **`frontend/README.md`**: Referencia específica para React, Tailwind, Vite.
-- **`docs/DEVELOPER_GUIDE.md`**: Guía paso a paso para añadir entidades, dtos, hooks, etc.
-- **`docs/API_REFERENCE.md`**: Modelos de REST, headers estandar, formatos de error.
-- **`DOCUMENTACION_MVP_AGENDAMIENTO.md`**: Registro histórico de avances y alcance inicial del MVP.
-- **`RAILWAY_DEPLOY.md`**: Pasos exactos para despliegue en entornos Serverless de Railway.
+- Code ownership por modulo.
+- Reglas de performance: animaciones GSAP con cleanup y sin layout thrashing.
+- Reglas de UI: uso consistente de variables de marca y EssenceMicroSymbol.
+
+---
+
+## 📄 Legal
+
+- Terminos del Servicio: /legal/terms
+- Politica de Privacidad: /legal/privacy
+- Politica de Tratamiento de Datos: /legal/ptd
+- Politica de Cookies: /legal/cookies
+- DPA: /legal/dpa
+- SLA: /legal/saas
+
+---
+
+## ✅ Checklist de arranque
+
+```bash
+# En una terminal
+npm install
+
+# Backend
+cd backend
+npm run dev
+
+# Frontend
+cd ../frontend
+npm run dev
+```

@@ -1,10 +1,11 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
 import { BrandMark } from '../components/BrandMark';
 import { moduleRegistry } from '../constants/moduleRegistry';
 import { TopLoadingBar } from '../components/TopLoadingBar';
+import { gsap } from '../animations/gsapConfig';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `app-navlink ${isActive ? 'app-navlink--active' : ''}`;
@@ -16,7 +17,18 @@ export function AppLayout() {
   const isGod = user?.role === 'GOD';
   const isOwner = user?.role === 'OWNER';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables']);
+  const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables', 'kitchen_display']);
+  const location = useLocation();
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    gsap.fromTo(
+      contentRef.current,
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+    );
+  }, [location.pathname]);
 
   const godLinks = [
     { to: '/god', label: 'Dashboard Global' },
@@ -160,7 +172,7 @@ export function AppLayout() {
         </div>
       ) : null}
 
-      <main className="app-container py-10 pb-24 lg:pb-10">
+      <main className="app-container py-10 pb-24 lg:pb-10" ref={contentRef}>
         <Outlet />
       </main>
     </div>

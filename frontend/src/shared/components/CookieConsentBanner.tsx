@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 const STORAGE_KEY = 'essence_cookie_consent';
 
@@ -67,7 +66,9 @@ export function CookieConsentBanner() {
               Usamos cookies necesarias para sesiones y seguridad. Las analiticas y de marketing son opcionales.
             </p>
           </div>
-          <Link className="btn-ghost text-xs" to="/legal/cookies">Ver politica</Link>
+          <a className="btn-ghost text-xs" href="/legal/cookies">
+            Ver politica
+          </a>
         </div>
 
         <div className="grid gap-3 text-xs text-muted md:grid-cols-3">

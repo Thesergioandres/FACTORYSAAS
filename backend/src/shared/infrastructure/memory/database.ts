@@ -59,6 +59,7 @@ type Tenant = {
   status: string;
   email?: string | null;
   phone?: string | null;
+  country?: string;
   validUntil?: string | null;
   createdAt: string;
   customColors?: {
@@ -119,6 +120,17 @@ type Product = {
   createdAt: string;
 };
 
+type Customer = {
+  id: string;
+  tenantId: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  tags?: string[];
+  createdAt: string;
+};
+
 type Appointment = {
   id: string;
   tenantId: string;
@@ -157,6 +169,17 @@ export const database: {
   branches: Branch[];
   services: Service[];
   inventory: Product[];
+  customers: Customer[];
+  invoices: Array<{
+    id: string;
+    tenantId: string;
+    subtotal: number;
+    taxAmount: number;
+    total: number;
+    currency: string;
+    country: string;
+    createdAt: string;
+  }>;
   staffSchedules: Array<Record<string, unknown>>;
   staffBlocks: Array<Record<string, unknown>>;
   appointments: Appointment[];
@@ -206,6 +229,7 @@ export const database: {
       status: 'active',
       email: 'admin@factorysaas.com',
       phone: '+573000000001',
+      country: 'CO',
       validUntil: null,
       createdAt: new Date().toISOString(),
       legalConsent: {
@@ -350,6 +374,8 @@ export const database: {
     }
   ],
   inventory: [],
+  customers: [],
+  invoices: [],
   staffSchedules: [],
   staffBlocks: [],
   appointments: [

@@ -11,10 +11,12 @@ import type { AppModule } from '../types/appModules';
 const AdminAgendaPage = lazy(() => import('../../modules/admin/pages/AdminAgendaPage').then((m) => ({ default: m.AdminAgendaPage })));
 const AdminInventoryPage = lazy(() => import('../../modules/admin/pages/AdminInventoryPage').then((m) => ({ default: m.AdminInventoryPage })));
 const AdminPOSPage = lazy(() => import('../../modules/admin/pages/AdminPOSPage').then((m) => ({ default: m.AdminPOSPage })));
+const AdminTablesPage = lazy(() => import('../../modules/admin/pages/AdminTablesPage').then((m) => ({ default: m.AdminTablesPage })));
+const AdminKitchenPage = lazy(() => import('../../modules/admin/pages/AdminKitchenPage').then((m) => ({ default: m.AdminKitchenPage })));
 
 export type ModuleKey = Extract<
   AppModule,
-  'agenda' | 'staff' | 'inventory' | 'pos' | 'commissions' | 'digital_menu' | 'services'
+  'agenda' | 'staff' | 'inventory' | 'pos' | 'tables' | 'kitchen_display' | 'commissions' | 'digital_menu' | 'services'
 > | 'branches' | 'whatsapp' | 'reports';
 
 export type ModuleRegistryEntry = {
@@ -78,6 +80,18 @@ export const moduleRegistry: Record<ModuleKey, ModuleRegistryEntry> = {
     label: 'POS',
     adminPath: '/admin/pos',
     adminElement: <AdminPOSPage />
+  },
+  tables: {
+    key: 'tables',
+    label: 'Mesas',
+    adminPath: '/admin/tables',
+    adminElement: <AdminTablesPage />
+  },
+  kitchen_display: {
+    key: 'kitchen_display',
+    label: 'Cocina',
+    adminPath: '/admin/tables/kitchen',
+    adminElement: <AdminKitchenPage />
   },
   digital_menu: {
     key: 'digital_menu',

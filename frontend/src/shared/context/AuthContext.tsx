@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../infrastructure/http/apiClient';
-import { clearAuthToken, setAuthToken } from '../infrastructure/http/session';
+import { clearAuthToken, getAuthToken, isAuthTokenValid, setAuthToken } from '../infrastructure/http/session';
 
 export type SessionUser = {
   id: string;
@@ -25,6 +25,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadSession = useCallback(async () => {
+    const token = getAuthToken();
+    if (!token || !isAuthTokenValid(token)) {
+      // Si no hay token o esta vencido, evitamos /auth/me y limpiamos la sesion local.
+      if (token) {
+        clearAuthToken();
+      }
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     try {
       const me = await apiRequest<SessionUser>('/auth/me');
       setUser(me);

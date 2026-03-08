@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { VERTICALS_REGISTRY } from '../../shared/constants/verticalsRegistry';
 import { gsap } from '../../shared/animations/gsapConfig';
 import { EssenceMicroSymbol } from '../../shared/components/EssenceMicroSymbol';
+import { DynamicHero } from './components/DynamicHero';
 
 const MODULE_DEFINITIONS: Record<string, { label: string; description: string }> = {
   agenda: {
@@ -93,10 +94,11 @@ const MODULE_DEFINITIONS: Record<string, { label: string; description: string }>
 
 export function VerticalLandingPage() {
   const baseChipsRef = useRef<HTMLDivElement | null>(null);
-  const { slug } = useParams();
+  const { slug, verticalId } = useParams();
   const vertical = useMemo(() => {
-    return VERTICALS_REGISTRY.find((item) => item.slug === slug);
-  }, [slug]);
+    const resolved = slug || verticalId;
+    return VERTICALS_REGISTRY.find((item) => item.slug === resolved);
+  }, [slug, verticalId]);
 
   const theme = useMemo(() => {
     return (
@@ -163,15 +165,7 @@ export function VerticalLandingPage() {
   }, [vertical]);
 
   if (!vertical) {
-    return (
-      <section className="app-card">
-        <h2 className="section-title">Vertical no encontrada</h2>
-        <p className="section-subtitle">Explora nuestras soluciones y vuelve a intentarlo.</p>
-        <div className="mt-6">
-          <Link className="btn-secondary" to="/">Volver al inicio</Link>
-        </div>
-      </section>
-    );
+    return <Navigate to="/404" replace />;
   }
 
   const isReady = vertical.slug === 'barberias';
@@ -242,6 +236,9 @@ export function VerticalLandingPage() {
         } as React.CSSProperties
       }
     >
+      <div className="reveal-on-scroll">
+        <DynamicHero verticalId={vertical.slug} verticalName={vertical.name} />
+      </div>
       <div className="app-card relative overflow-hidden p-10 reveal-on-scroll">
         {isReady ? (
           <div

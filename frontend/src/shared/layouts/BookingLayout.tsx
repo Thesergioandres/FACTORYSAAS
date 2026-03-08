@@ -1,10 +1,23 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { BrandMark } from '../components/BrandMark';
 import { useTenant } from '../context/TenantContext';
 import { TopLoadingBar } from '../components/TopLoadingBar';
+import { gsap } from '../animations/gsapConfig';
 
 export function BookingLayout() {
   const { tenant } = useTenant();
+  const location = useLocation();
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    gsap.fromTo(
+      contentRef.current,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+    );
+  }, [location.pathname]);
 
   return (
     <div className="app-shell">
@@ -25,7 +38,7 @@ export function BookingLayout() {
         </div>
       </header>
 
-      <main className="app-container py-10">
+      <main className="app-container py-10" ref={contentRef}>
         <Outlet />
       </main>
     </div>

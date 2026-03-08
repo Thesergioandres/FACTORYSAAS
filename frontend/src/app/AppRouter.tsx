@@ -14,6 +14,7 @@ import { EssencePulseLoader } from '../shared/components/EssencePulseLoader';
 import { RoleGuard } from '../shared/components/RoleGuard';
 import { ModuleGuard } from '../shared/components/ModuleGuard';
 import { moduleRegistry } from '../shared/constants/moduleRegistry';
+import { VERTICALS_REGISTRY } from '../shared/constants/verticalsRegistry';
 import { resolveHostContext } from '../shared/utils/host';
 
 const WaitingApprovalPage = lazy(() => import('../modules/auth/presentation/pages/WaitingApprovalPage').then((mod) => ({
@@ -42,6 +43,9 @@ const BarberiasClientLoginPage = lazy(() => import('../modules/landing/Barberias
 })));
 const VerticalLandingPage = lazy(() => import('../modules/landing/VerticalLandingPage').then((mod) => ({
   default: mod.VerticalLandingPage
+})));
+const VerticalNotFoundPage = lazy(() => import('../modules/landing/VerticalNotFoundPage').then((mod) => ({
+  default: mod.VerticalNotFoundPage
 })));
 const BarbershopLandingPage = lazy(() => import('../modules/landing/presentation/pages/BarbershopLandingPage').then((mod) => ({
   default: mod.BarbershopLandingPage
@@ -161,7 +165,7 @@ export function AppRouter() {
 
       return children;
     };
-    const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables']);
+    const staffAllowedModules = new Set(['agenda', 'inventory', 'pos', 'tables', 'kitchen_display']);
     const moduleRoutes = Object.values(moduleRegistry).flatMap((module) => {
       if (isGod) {
         return [];
@@ -388,6 +392,27 @@ export function AppRouter() {
             <VerticalLandingPage />
           </Suspense>
         } />
+        {VERTICALS_REGISTRY.map((vertical) => (
+          <Route
+            key={vertical.slug}
+            path={`/${vertical.slug}`}
+            element={
+              <Suspense fallback={<RouteLoader />}>
+                <VerticalLandingPage />
+              </Suspense>
+            }
+          />
+        ))}
+        <Route path="/404" element={
+          <Suspense fallback={<RouteLoader />}>
+            <VerticalNotFoundPage />
+          </Suspense>
+        } />
+        <Route path="/:verticalId" element={
+          <Suspense fallback={<RouteLoader />}>
+            <VerticalLandingPage />
+          </Suspense>
+        } />
         <Route path="/barberias" element={
           <Suspense fallback={<RouteLoader />}>
             <BarbershopLandingPage />
@@ -463,7 +488,7 @@ export function AppRouter() {
             <DataProcessingAgreement />
           </Suspense>
         } />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
       </Route>
     );
 

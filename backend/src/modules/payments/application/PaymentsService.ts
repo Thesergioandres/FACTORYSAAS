@@ -71,6 +71,61 @@ export class PaymentsService {
     } as const;
   }
 
+  async createSubscription(input: { tenantId: string; planId: string; payerEmail?: string }) {
+    if (!this.deps.accessToken) {
+      return { error: 'Mercado Pago no configurado', statusCode: 501 } as const;
+    }
+
+    const plan = await this.deps.plansRepository.findById(input.planId);
+    if (!plan) {
+      return { error: 'Plan no encontrado', statusCode: 404 } as const;
+    }
+
+    const tenant = await this.deps.tenantsRepository.findById(input.tenantId);
+    if (!tenant) {
+      return { error: 'Tenant no encontrado', statusCode: 404 } as const;
+    }
+
+    const payerEmail = input.payerEmail || tenant.email || undefined;
+    if (!payerEmail) {
+      return { error: 'payerEmail requerido para suscripciones', statusCode: 400 } as const;
+    }
+
+    const body = {
+      reason: `Suscripcion Plan ${plan.name} - ESSENCE FACTORY SAAS`,
+      external_reference: `${tenant.id}:${plan.id}`,
+      payer_email: payerEmail,
+      back_url: this.deps.successUrl,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: 'months',
+        transaction_amount: plan.price,
+        currency_id: this.deps.currencyId || 'COP'
+      }
+    };
+
+    const response = await fetch('https://api.mercadopago.com/preapproval', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.deps.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ message: 'Error al crear suscripcion' }));
+      return { error: errorBody.message || 'Error al crear suscripcion', statusCode: 502 } as const;
+    }
+
+    const data = (await response.json()) as { id?: string; init_point?: string; status?: string };
+    return {
+      subscriptionId: data.id,
+      initPoint: data.init_point,
+      status: data.status
+    } as const;
+  }
+
   async handleWebhook(payload: { type?: string; topic?: string; data?: { id?: string } }) {
     if (!this.paymentClient) {
       return { status: 'skipped', reason: 'Mercado Pago no configurado' } as const;

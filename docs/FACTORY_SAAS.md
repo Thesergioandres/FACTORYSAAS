@@ -2,6 +2,16 @@
 
 Fecha: 2026-03-05
 
+## 0. Documentacion extendida
+- docs/INDEX.md
+- docs/ARCHITECTURE.md
+- docs/FEATURES.md
+- docs/VERTICALS.md
+- docs/REALTIME.md
+- docs/BILLING.md
+- docs/CONTENT.md
+- docs/DEPLOYMENT.md
+
 ## 1. Resumen Ejecutivo
 Essence Factory SaaS es una plataforma multi-tenant white-label para verticales de servicios. El sistema opera como monorepo con frontend React (SPA) y backend Node/Express, con persistencia en MongoDB y jobs opcionales via Redis/BullMQ. La plataforma ofrece onboarding automatico de negocios, control por planes, branding por tenant y modulos de operacion (agenda, staff, inventario, reportes, WhatsApp).
 

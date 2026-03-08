@@ -24,6 +24,7 @@ function mapTenant(document: {
   validUntil?: Date | null;
   email?: string | null;
   phone?: string | null;
+  country?: string | null;
   customColors?: { primary?: string; secondary?: string };
   logoUrl?: string | null;
   config: TenantEntity['config'];
@@ -58,6 +59,7 @@ function mapTenant(document: {
     validUntil: document.validUntil ? new Date(document.validUntil).toISOString() : null,
     email: document.email ?? null,
     phone: document.phone ?? null,
+    country: document.country ?? undefined,
     customColors: document.customColors,
     logoUrl: document.logoUrl ?? null,
     config: document.config,

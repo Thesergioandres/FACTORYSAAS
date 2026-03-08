@@ -12,6 +12,7 @@ type TenantRecord = {
   planName?: string;
   email?: string | null;
   createdAt?: string;
+  validUntil?: string | null;
 };
 
 type Plan = {
@@ -28,6 +29,14 @@ type TenantsMetrics = {
 type WhatsAppHealth = {
   status: 'online' | 'offline';
   lastWebhookAt?: string | null;
+};
+
+type ApiHealth = {
+  ok: boolean;
+  service: string;
+  timestamp: string;
+  mongoConnected: boolean;
+  latencyMs: number;
 };
 
 const USD_TO_COP = 4000;
@@ -56,9 +65,33 @@ export function GodDashboardPage() {
     queryFn: () => apiRequest<WhatsAppHealth>('/notifications/health')
   });
 
+  const systemHealthQuery = useQuery({
+    queryKey: ['system-health'],
+    queryFn: async () => {
+      const started = performance.now();
+      const data = await apiRequest<Omit<ApiHealth, 'latencyMs'>>('/health');
+      const latencyMs = Math.round(performance.now() - started);
+      return { ...data, latencyMs };
+    }
+  });
+
   const activeTenants = useMemo(() => {
     const list = tenantsQuery.data || [];
     return list.filter((tenant) => tenant.status === 'active');
+  }, [tenantsQuery.data]);
+
+  const churnRate = useMemo(() => {
+    const list = tenantsQuery.data || [];
+    if (list.length === 0) return 0;
+    const now = Date.now();
+    const churned = list.filter((tenant) => {
+      if (tenant.status === 'suspended' || tenant.status === 'expired') return true;
+      if (tenant.validUntil) {
+        return new Date(tenant.validUntil).getTime() < now;
+      }
+      return false;
+    }).length;
+    return Math.round((churned / list.length) * 100);
   }, [tenantsQuery.data]);
 
   const totalRevenueCop = useMemo(() => {
@@ -70,6 +103,8 @@ export function GodDashboardPage() {
     return totalUsd * USD_TO_COP;
   }, [activeTenants, plansQuery.data]);
 
+  const mrrCop = totalRevenueCop;
+
   const formatCop = (value: number) =>
     new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -78,6 +113,7 @@ export function GodDashboardPage() {
     }).format(value);
 
   const isHealthOnline = whatsappHealthQuery.data?.status === 'online';
+  const isMongoOnline = systemHealthQuery.data?.mongoConnected === true;
 
   useGSAP(
     () => {
@@ -117,6 +153,36 @@ export function GodDashboardPage() {
       </header>
 
       <div ref={kpiRef} className="grid gap-4 md:grid-cols-3">
+        <div className="app-card god-kpi-card">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted">MRR (COP)</p>
+          <p className="mt-4 text-3xl font-semibold">
+            {plansQuery.isLoading ? '...' : formatCop(mrrCop)}
+          </p>
+          <p className="mt-2 text-xs text-muted">Suma de planes activos.</p>
+        </div>
+        <div className="app-card god-kpi-card">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted">Churn Rate</p>
+          <p className="mt-4 text-3xl font-semibold">{tenantsQuery.isLoading ? '...' : `${churnRate}%`}</p>
+          <p className="mt-2 text-xs text-muted">Tenants con suscripcion vencida.</p>
+        </div>
+        <div className="app-card god-kpi-card">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted">System Health</p>
+          <div className="mt-4 space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>MongoDB</span>
+              <span className={isMongoOnline ? 'text-emerald-200' : 'text-red-200'}>
+                {systemHealthQuery.isLoading ? '...' : isMongoOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Latencia API</span>
+              <span>{systemHealthQuery.isLoading ? '...' : `${systemHealthQuery.data?.latencyMs ?? 0} ms`}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
         <div className="app-card god-kpi-card">
           <p className="text-xs uppercase tracking-[0.2em] text-muted">Ingresos Totales (COP)</p>
           <p className="mt-4 text-3xl font-semibold">

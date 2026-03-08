@@ -36,7 +36,12 @@ import { createTablesModule } from '../modules/tables/module';
 import { createProjectsModule } from '../modules/projects/module';
 import { createSubscriptionsModule } from '../modules/subscriptions/module';
 import { createPaymentsModule } from '../modules/payments/module';
+import { createCrmModule } from '../modules/crm/module';
+import { createBillingModule } from '../modules/billing/module';
+import { createContentModule } from '../modules/content/module';
 import { createUploadRoutes } from '../routes/upload';
+import { createOrdersRoutes } from '../routes/orders';
+import { createOrdersStreamRoutes } from '../routes/ordersStream';
 import { healthRouter } from '../routes/health';
 import type { Env } from '../config/env';
 import type { Logger } from 'pino';
@@ -159,8 +164,21 @@ export function createApp({
   });
   const { authRoutes } = createAuthModule({ env, usersRepository, tenantsRepository });
 
+  const { billingRoutes, createInvoiceUseCase } = createBillingModule({
+    useMongo: persistence.useMongo,
+    tenantsRepository,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
+  const { contentRoutes } = createContentModule();
+
   const { posRoutes } = createPosModule({
     useMongo: persistence.useMongo,
+    appointmentsRepository,
+    servicesRepository,
+    usersRepository,
+    createInvoiceUseCase,
     authenticateJwt: authMiddleware,
     requireRoles
   });
@@ -191,10 +209,23 @@ export function createApp({
     requireRoles
   });
 
+  const { crmRoutes } = createCrmModule({
+    useMongo: persistence.useMongo,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
   const { uploadRoutes } = createUploadRoutes({
     authenticateJwt: authMiddleware,
     requireRoles
   });
+
+  const { ordersRoutes } = createOrdersRoutes({
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
+  const { ordersRoutes: ordersStreamRoutes } = createOrdersStreamRoutes({ env });
 
   const tenantsRoutes = createTenantsRoutes({
     tenantsRepository,
@@ -270,7 +301,12 @@ export function createApp({
   app.use('/api/projects', projectsRoutes);
   app.use('/api/subscriptions', subscriptionsRoutes);
   app.use('/api/payments', paymentsRoutes);
+  app.use('/api/billing', billingRoutes);
+  app.use('/api/crm', crmRoutes);
+  app.use('/api/content', contentRoutes);
   app.use('/api/upload', uploadRoutes);
+  app.use('/api/orders', ordersRoutes);
+  app.use('/api/orders', ordersStreamRoutes);
 
   const publicDir = path.join(process.cwd(), 'public');
   if (env.nodeEnv === 'production' && fs.existsSync(publicDir)) {
