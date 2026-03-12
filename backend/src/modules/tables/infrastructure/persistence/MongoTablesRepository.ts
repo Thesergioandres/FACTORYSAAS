@@ -10,6 +10,7 @@ export class MongoTablesRepository implements TablesRepository {
       tenantId: document.tenantId,
       name: document.name,
       capacity: document.capacity,
+      currentOrderId: document.currentOrderId,
       status: document.status,
       updatedAt: document.updatedAt?.toISOString() || new Date().toISOString()
     };
@@ -30,10 +31,17 @@ export class MongoTablesRepository implements TablesRepository {
     return this.mapTable(doc.toObject() as TableDocument & { _id: Types.ObjectId }) as TableRecord;
   }
 
-  async updateStatus(tenantId: string, id: string, status: TableStatus): Promise<TableRecord | null> {
+  async updateStatus(tenantId: string, id: string, status: TableStatus, currentOrderId?: string): Promise<TableRecord | null> {
+    const updatePayload: any = { status };
+    if (currentOrderId !== undefined) {
+      updatePayload.currentOrderId = currentOrderId;
+    } else if (status === 'LIBRE' || status === 'LIMPIEZA') {
+      updatePayload.currentOrderId = null;
+    }
+
     const doc = await TableModel.findOneAndUpdate(
       { tenantId, _id: id },
-      { status },
+      updatePayload,
       { new: true }
     ).lean();
     return this.mapTable(doc as (TableDocument & { _id: Types.ObjectId }) | null);

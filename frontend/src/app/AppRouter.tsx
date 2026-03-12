@@ -154,7 +154,7 @@ export function AppRouter() {
       }
 
       if (role === 'STAFF') {
-        const blocked = ['settings', 'billing', 'admin-home'];
+        const blocked = ['settings', 'billing', 'admin-home', 'reports'];
         const pathname = location.pathname.toLowerCase();
         if (blocked.some((segment) => pathname.includes(segment))) {
           return <Navigate to="/" replace />;

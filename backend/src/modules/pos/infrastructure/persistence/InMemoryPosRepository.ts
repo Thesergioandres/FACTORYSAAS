@@ -17,6 +17,7 @@ export class InMemoryPosRepository implements PosRepository {
     const sale: PosSale = {
       id: randomUUID(),
       tenantId: input.tenantId,
+      tableId: input.tableId,
       items: input.items,
       total,
       paymentMethod: input.paymentMethod,

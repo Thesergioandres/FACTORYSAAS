@@ -21,12 +21,19 @@ export class InMemoryTablesRepository implements TablesRepository {
     return table;
   }
 
-  async updateStatus(tenantId: string, id: string, status: TableStatus) {
+  async updateStatus(tenantId: string, id: string, status: TableStatus, currentOrderId?: string) {
     const index = this.tables.findIndex((table) => table.tenantId === tenantId && table.id === id);
     if (index < 0) return null;
+
+    let updatedOrderId = currentOrderId !== undefined ? currentOrderId : this.tables[index].currentOrderId;
+    if (status === 'LIBRE' || status === 'LIMPIEZA') {
+      updatedOrderId = undefined;
+    }
+
     const updated: TableRecord = {
       ...this.tables[index],
       status,
+      currentOrderId: updatedOrderId,
       updatedAt: new Date().toISOString()
     };
     this.tables[index] = updated;

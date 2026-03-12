@@ -5,9 +5,14 @@ import type { UpdateAppointmentStatusUseCase } from '../../application/use-cases
 import type { CancelOrRescheduleAppointmentUseCase } from '../../application/use-cases/cancelOrRescheduleAppointmentUseCase';
 import type { ReassignAppointmentUseCase } from '../../application/use-cases/reassignAppointmentUseCase';
 import type { AppointmentHistoryRepository } from '../../application/ports/AppointmentHistoryRepository';
+import type { RegisterClientUseCase } from '../../../users/application/use-cases/registerClientUseCase';
 import type { authenticateJwt } from '../../../../shared/interfaces/http/middlewares/authenticateJwt';
 import type { requireRoles } from '../../../../shared/interfaces/http/middlewares/requireRoles';
 import type { requireApproved } from '../../../../shared/interfaces/http/middlewares/requireApproved';
+
+type UsersRepository = {
+  findByEmail(email: string): Promise<{ id: string; name?: string } | null>;
+};
 
 export function createAppointmentsRoutes({
   appointmentsRepository,
@@ -16,6 +21,8 @@ export function createAppointmentsRoutes({
   cancelOrRescheduleAppointmentUseCase,
   reassignAppointmentUseCase,
   historyRepository,
+  registerClientUseCase,
+  usersRepository,
   authenticateJwt: authMiddleware,
   requireApproved: requireApprovedMiddleware,
   requireRoles: requireRolesMiddleware
@@ -26,11 +33,104 @@ export function createAppointmentsRoutes({
   cancelOrRescheduleAppointmentUseCase: CancelOrRescheduleAppointmentUseCase;
   reassignAppointmentUseCase: ReassignAppointmentUseCase;
   historyRepository: AppointmentHistoryRepository;
+  registerClientUseCase?: RegisterClientUseCase;
+  usersRepository?: UsersRepository;
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireApproved: ReturnType<typeof requireApproved>;
   requireRoles: typeof requireRoles;
 }) {
   const router = Router();
+
+  // ── PUBLIC B2C BOOKING ──────────────────────────────────
+  // Endpoint sin autenticación para que clientes finales
+  // puedan agendar desde la landing pública del tenant.
+  router.post('/public', async (req: Request, res: Response) => {
+    const {
+      tenantId, branchId, staffId, serviceId, startAt, notes,
+      clientName, clientEmail, clientPhone
+    } = req.body as {
+      tenantId?: string; branchId?: string; staffId?: string;
+      serviceId?: string; startAt?: string; notes?: string;
+      clientName?: string; clientEmail?: string; clientPhone?: string;
+    };
+
+    if (!tenantId || !branchId || !staffId || !serviceId || !startAt) {
+      return res.status(400).json({ message: 'tenantId, branchId, staffId, serviceId y startAt son requeridos' });
+    }
+
+    if (!clientName || !clientEmail || !clientPhone) {
+      return res.status(400).json({ message: 'clientName, clientEmail y clientPhone son requeridos' });
+    }
+
+    // 1. Registrar o encontrar cliente existente
+    let clientId: string | undefined;
+
+    if (usersRepository) {
+      const existing = await usersRepository.findByEmail(clientEmail);
+      if (existing) {
+        clientId = existing.id;
+      }
+    }
+
+    if (!clientId && registerClientUseCase) {
+      const regResult = await registerClientUseCase.execute({
+        name: clientName,
+        email: clientEmail,
+        phone: clientPhone,
+        password: `essence_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        whatsappConsent: true,
+        tenantId
+      });
+
+      if ('error' in regResult) {
+        // Si el email ya existe, buscar de nuevo
+        if (regResult.statusCode === 409 && usersRepository) {
+          const found = await usersRepository.findByEmail(clientEmail);
+          if (found) {
+            clientId = found.id;
+          }
+        }
+
+        if (!clientId) {
+          return res.status(regResult.statusCode).json({ message: regResult.error });
+        }
+      } else {
+        clientId = regResult.user.id;
+      }
+    }
+
+    if (!clientId) {
+      return res.status(500).json({ message: 'No se pudo registrar al cliente' });
+    }
+
+    // 2. Crear la cita delegando al UseCase central
+    const result = await createAppointmentUseCase.execute({
+      tenantId,
+      branchId,
+      clientId,
+      staffId,
+      serviceId,
+      startAt,
+      notes,
+      actorRole: 'CLIENT',
+      actorUserId: clientId
+    });
+
+    if ('error' in result) {
+      return res.status(result.statusCode).json({
+        message: result.error,
+        paymentUrl: (result as { paymentUrl?: string }).paymentUrl
+      });
+    }
+
+    // 3. Devolver la cita con los 100 Puntos de Confianza iniciales
+    return res.status(201).json({
+      appointment: result.appointment,
+      trustPoints: 100,
+      message: '¡Cita agendada con éxito!'
+    });
+  });
+
 
   router.get('/', authMiddleware, requireApprovedMiddleware, requireRolesMiddleware('ADMIN', 'STAFF', 'CLIENT'), async (req: Request, res: Response) => {
     const requesterRole = req.auth?.role;

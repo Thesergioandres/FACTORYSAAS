@@ -23,7 +23,7 @@ export function createPaymentsRoutes({
 
     const result = await paymentsService.createPreference({ tenantId, planId });
     if ('error' in result) {
-      return res.status(result.statusCode).json({ message: result.error });
+      return res.status(result.statusCode || 400).json({ message: result.error });
     }
 
     return res.json(result);
@@ -38,7 +38,7 @@ export function createPaymentsRoutes({
 
     const result = await paymentsService.createSubscription({ tenantId, planId, payerEmail });
     if ('error' in result) {
-      return res.status(result.statusCode).json({ message: result.error });
+      return res.status(result.statusCode || 400).json({ message: result.error });
     }
 
     return res.json(result);
@@ -46,7 +46,11 @@ export function createPaymentsRoutes({
 
   router.post('/webhook', async (req: Request, res: Response) => {
     try {
-      const result = await paymentsService.handleWebhook(req.body as { type?: string; topic?: string; data?: { id?: string } });
+      const signature = req.headers['x-signature'] as string;
+      const requestId = req.headers['x-request-id'] as string;
+      const body = req.body as { type?: string; topic?: string; data?: { id?: string } };
+
+      const result = await paymentsService.handleWebhook(body, signature, requestId);
       return res.json(result);
     } catch (error) {
       return res.status(500).json({ message: 'Webhook error' });

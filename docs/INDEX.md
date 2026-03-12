@@ -14,3 +14,9 @@ Este indice agrupa la documentacion tecnica y funcional creada para el equipo.
 - DEPLOYMENT.md: despliegue y variables clave.
 - ONBOARDING.md: guia de entrada para nuevos devs.
 - CHANGELOG.md: resumen de cambios por fecha.
+- PRD_ESSENCE_FACTORY.md: Documento de Requerimientos de Producto (PRD) de ESSENCE Software Factory.
+- FACTORY_SAAS.md: Documentación técnica central del ecosistema.
+- MATRIZ_FUNCIONES.md: Matriz de desarrollo transversal por capas y verticales.
+- AUDIT_VERTICALS_FEATURE.md: Auditoría de las funciones actuales vs features requeridos.
+- RECOMENDACION_FAMILIAS.md: Recomendación estructurada por familias de negocio y módulos.
+- DOCUMENTACION_RECOMENDADA.md: Estructuración y priorización para la documentación a mantener en el proyecto.

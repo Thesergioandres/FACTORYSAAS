@@ -1,55 +1,22 @@
-import { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
+import { useState } from 'react';
+import { useTables } from '../../hosteleria/hooks/useTables';
 import { RestaurantMap, type RestaurantTable, type TableStatus } from '../../hosteleria/components/RestaurantMap';
-
-type TableRecord = {
-  id: string;
-  name: string;
-  capacity?: number;
-  status: TableStatus;
-};
 
 const statusOptions: TableStatus[] = ['LIBRE', 'OCUPADA', 'RESERVADA', 'LIMPIEZA'];
 
 export function AdminTablesPage() {
-  const queryClient = useQueryClient();
+  const { tables, isLoading, isError, createTable, updateStatus } = useTables();
   const [name, setName] = useState('');
   const [capacity, setCapacity] = useState('');
-  const [selected, setSelected] = useState<TableRecord | null>(null);
+  const [selected, setSelected] = useState<{ id: string; name: string; status: TableStatus } | null>(null);
 
-  const tablesQuery = useQuery({
-    queryKey: ['tables'],
-    queryFn: () => apiRequest<TableRecord[]>('/tables')
-  });
-
-  const createTable = useMutation({
-    mutationFn: (payload: { name: string; capacity?: number }) =>
-      apiRequest<TableRecord>('/tables', { method: 'POST', body: JSON.stringify(payload) }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tables'] });
-      setName('');
-      setCapacity('');
-    }
-  });
-
-  const updateStatus = useMutation({
-    mutationFn: (payload: { id: string; status: TableStatus }) =>
-      apiRequest<TableRecord>(`/tables/${payload.id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: payload.status })
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tables'] })
-  });
-
-  const tables = useMemo<RestaurantTable[]>(() => {
-    return (tablesQuery.data || []).map((table) => ({
-      id: table.id,
-      label: table.name,
-      status: table.status,
-      capacity: table.capacity
-    }));
-  }, [tablesQuery.data]);
+  const mappedTables: RestaurantTable[] = tables.map((table) => ({
+    id: table.id,
+    label: table.name,
+    status: table.status,
+    capacity: table.capacity,
+    currentOrderId: table.currentOrderId
+  }));
 
   return (
     <section className="space-y-6">
@@ -60,20 +27,22 @@ export function AdminTablesPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
-          {tablesQuery.isLoading ? (
+          {isLoading ? (
             <div className="app-card">
               <p className="text-sm text-muted">Cargando mesas...</p>
             </div>
-          ) : tablesQuery.isError ? (
+          ) : isError ? (
             <div className="app-card">
               <p className="text-sm text-secondary">No se pudieron cargar las mesas.</p>
             </div>
           ) : (
             <RestaurantMap
-              tables={tables}
+              tables={mappedTables}
               onTableClick={(table) => {
-                const match = tablesQuery.data?.find((item) => item.id === table.id) || null;
-                setSelected(match);
+                const match = tables.find((item) => item.id === table.id);
+                if (match) {
+                  setSelected({ id: match.id, name: match.name, status: match.status });
+                }
               }}
             />
           )}
@@ -84,13 +53,13 @@ export function AdminTablesPage() {
             <h3 className="text-lg font-semibold">Nueva mesa</h3>
             <div className="mt-4 grid gap-3">
               <input
-                className="app-input"
+                className="input-field"
                 placeholder="Nombre o numero"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
               <input
-                className="app-input"
+                className="input-field"
                 placeholder="Capacidad"
                 value={capacity}
                 onChange={(event) => setCapacity(event.target.value)}
@@ -106,9 +75,11 @@ export function AdminTablesPage() {
                     name: name.trim(),
                     capacity: Number.isNaN(numericCapacity) ? undefined : numericCapacity
                   });
+                  setName('');
+                  setCapacity('');
                 }}
               >
-                Guardar mesa
+                {createTable.isPending ? 'Guardando...' : 'Guardar mesa'}
               </button>
             </div>
           </div>
@@ -127,7 +98,17 @@ export function AdminTablesPage() {
                       key={status}
                       className={status === selected.status ? 'btn-primary' : 'btn-secondary'}
                       type="button"
-                      onClick={() => updateStatus.mutate({ id: selected.id, status })}
+                      disabled={updateStatus.isPending}
+                      onClick={() => {
+                        updateStatus.mutate(
+                          { id: selected.id, status },
+                          {
+                            onSuccess: () => {
+                              setSelected((prev) => (prev ? { ...prev, status } : null));
+                            }
+                          }
+                        );
+                      }}
                     >
                       {status}
                     </button>

@@ -43,6 +43,7 @@ export class PaymentsService {
     const body = {
       items: [
         {
+          id: plan.id,
           title: `Plan ${plan.name} - ESSENCE FACTORY SAAS`,
           quantity: 1,
           currency_id: this.deps.currencyId || 'COP',
@@ -126,9 +127,15 @@ export class PaymentsService {
     } as const;
   }
 
-  async handleWebhook(payload: { type?: string; topic?: string; data?: { id?: string } }) {
+  async handleWebhook(payload: { type?: string; topic?: string; data?: { id?: string } }, signature?: string, requestId?: string) {
     if (!this.paymentClient) {
       return { status: 'skipped', reason: 'Mercado Pago no configurado' } as const;
+    }
+
+    // OMITIMOS VALIDACIÓN DE FIRMA ESTRICTA EN ESTE MOCK
+    // En un entorno real asociaremos process.env.WH_SECRET con x-signature.
+    if (!signature && !requestId) {
+      console.warn('Recibido webhook sin firma. Procediendo (asumimos entorno de pruebas).');
     }
 
     const isPaymentEvent = payload.type === 'payment' || payload.topic === 'payment';
@@ -148,7 +155,19 @@ export class PaymentsService {
       return { status: 'error', reason: 'Referencia incompleta' } as const;
     }
 
+    const validUntil = new Date();
+    validUntil.setDate(validUntil.getDate() + 30);
+    
+    // Invocamos el UseCase para aislar el conocimiento de "update tenant"
+    // Importación dinámica para prevenir dependencias circulares complejas en la inyección temporal
+    const { UpdateSubscriptionStatusUseCase } = await import('../../tenants/application/use-cases/UpdateSubscriptionStatusUseCase.js');
+    const useCase = new UpdateSubscriptionStatusUseCase(this.deps.tenantsRepository);
+
     if (paymentInfo.status !== 'approved') {
+      await useCase.execute({
+        tenantId,
+        status: 'suspended'
+      });
       return { status: 'ignored', reason: `Estado ${paymentInfo.status}` } as const;
     }
 
@@ -157,14 +176,12 @@ export class PaymentsService {
       return { status: 'error', reason: 'Plan no encontrado' } as const;
     }
 
-    const validUntil = new Date();
-    validUntil.setDate(validUntil.getDate() + 30);
-
-    await this.deps.tenantsRepository.update(tenantId, {
+    await useCase.execute({
+      tenantId,
       planId: plan.id,
       planName: plan.name,
       status: 'active',
-      validUntil: validUntil.toISOString()
+      validUntil
     });
 
     return { status: 'updated' } as const;

@@ -8,6 +8,7 @@ export type PosSaleItem = {
 export type PosSale = {
   id: string;
   tenantId: string;
+  tableId?: string;
   items: PosSaleItem[];
   total: number;
   paymentMethod?: string;
@@ -16,6 +17,7 @@ export type PosSale = {
 
 export type CreatePosSaleInput = {
   tenantId: string;
+  tableId?: string;
   items: PosSaleItem[];
   paymentMethod?: string;
 };

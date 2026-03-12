@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { apiRequest } from '../../shared/infrastructure/http/apiClient';
+import { PublicBookingWidget } from '../booking/components/PublicBookingWidget';
 
 type PublicTenantProfile = {
   id: string;
@@ -133,15 +134,13 @@ export function PublicTenantLanding() {
         </div>
       </header>
 
-      <main className="app-card">
-        <h2 className="text-2xl font-semibold">Experiencia de marca personalizada</h2>
-        <p className="mt-3 text-sm text-muted">
-          El color principal de botones, acentos y highlights ahora usa el `primaryColor` del perfil del tenant en tiempo real.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button className="btn-primary" type="button">Reservar cita</button>
-          <button className="btn-secondary" type="button">Ver servicios</button>
-        </div>
+      <main>
+        <PublicBookingWidget
+          tenantId={tenant.id}
+          tenantName={tenant.businessProfile.name}
+          branchId={tenant.id}
+          logoUrl={tenant.businessProfile.logoUrl}
+        />
       </main>
 
       <footer className="app-card text-sm text-muted">

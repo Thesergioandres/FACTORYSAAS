@@ -50,3 +50,5 @@ export function requireRoles(...allowedRoles: UserRole[]) {
     return next();
   };
 }
+
+export const RoleGuard = requireRoles;

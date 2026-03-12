@@ -5,6 +5,7 @@ export type TableRecord = {
   tenantId: string;
   name: string;
   capacity?: number;
+  currentOrderId?: string;
   status: TableStatus;
   updatedAt: string;
 };
@@ -18,5 +19,5 @@ export type CreateTableInput = {
 export interface TablesRepository {
   list(tenantId: string): Promise<TableRecord[]>;
   create(input: CreateTableInput): Promise<TableRecord>;
-  updateStatus(tenantId: string, id: string, status: TableStatus): Promise<TableRecord | null>;
+  updateStatus(tenantId: string, id: string, status: TableStatus, currentOrderId?: string): Promise<TableRecord | null>;
 }

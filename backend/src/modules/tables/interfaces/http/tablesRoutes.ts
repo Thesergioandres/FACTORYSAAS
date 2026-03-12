@@ -38,9 +38,10 @@ export function createTablesRoutes({
     if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
 
     const status = (req.body as { status?: TableStatus })?.status;
+    const currentOrderId = (req.body as { currentOrderId?: string })?.currentOrderId;
     if (!status) return res.status(400).json({ message: 'status es requerido' });
 
-    const updated = await tablesRepository.updateStatus(tenantId, req.params.id, status);
+    const updated = await tablesRepository.updateStatus(tenantId, req.params.id, status, currentOrderId);
     if (!updated) return res.status(404).json({ message: 'Mesa no encontrada' });
 
     return res.json(updated);

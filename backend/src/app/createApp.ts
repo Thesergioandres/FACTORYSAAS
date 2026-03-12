@@ -14,6 +14,7 @@ import { requireRoles } from '../shared/interfaces/http/middlewares/requireRoles
 import { requireApproved } from '../shared/interfaces/http/middlewares/requireApproved';
 import { createPlanGatekeeper } from '../shared/interfaces/http/middlewares/planGatekeeper';
 import { auditLogger } from '../shared/interfaces/http/middlewares/auditLogger';
+import { subscriptionGuard } from '../shared/interfaces/http/middlewares/subscriptionGuard';
 import { createAuthModule } from '../modules/auth/module';
 import { createUsersModule } from '../modules/users/module';
 import { createServicesModule } from '../modules/services/module';
@@ -70,6 +71,7 @@ export function createApp({
   const authMiddleware = authenticateJwt({ jwtSecret: env.jwtSecret });
 
   const tenantsRepository = createTenantsRepository({ useMongo: persistence.useMongo });
+  const blockSuspendedTenant = subscriptionGuard({ tenantsRepository });
 
   const { plansRoutes, plansRepository } = createPlansModule({
     useMongo: persistence.useMongo,
@@ -285,8 +287,11 @@ export function createApp({
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use('/api', healthRouter);
-  app.use('/api/tenants', tenantsRoutes);
   app.use('/api/auth', authRoutes);
+  app.use('/api/payments', paymentsRoutes);
+  
+  app.use(blockSuspendedTenant);
+  app.use('/api/tenants', tenantsRoutes);
   app.use('/api/users', usersRoutesWithFactory);
   app.use('/api/plans', plansRoutes);
   app.use('/api/branches', branchesRoutes);
@@ -300,7 +305,6 @@ export function createApp({
   app.use('/api/tables', tablesRoutes);
   app.use('/api/projects', projectsRoutes);
   app.use('/api/subscriptions', subscriptionsRoutes);
-  app.use('/api/payments', paymentsRoutes);
   app.use('/api/billing', billingRoutes);
   app.use('/api/crm', crmRoutes);
   app.use('/api/content', contentRoutes);

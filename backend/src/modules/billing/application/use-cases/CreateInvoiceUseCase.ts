@@ -1,5 +1,5 @@
 import type { InvoicesRepository } from '../ports/InvoicesRepository';
-import type { TenantsRepository } from '../../tenants/application/ports/TenantsRepository';
+import type { TenantsRepository } from '../../../tenants/application/ports/TenantsRepository';
 import { TaxCalculatorService } from '../services/TaxCalculatorService';
 
 export class CreateInvoiceUseCase {

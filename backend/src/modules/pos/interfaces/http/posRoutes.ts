@@ -61,11 +61,12 @@ export function createPosRoutes({
     const result = await createSaleUseCase.execute({
       tenantId,
       items: (req.body as { items?: Array<{ productId: string; name: string; quantity: number; price: number }> })?.items || [],
-      paymentMethod: (req.body as { paymentMethod?: string })?.paymentMethod
+      paymentMethod: (req.body as { paymentMethod?: string })?.paymentMethod,
+      tableId: (req.body as { tableId?: string })?.tableId
     });
 
     if ('error' in result) {
-      return res.status(result.statusCode).json({ message: result.error });
+      return res.status(result.statusCode || 400).json({ message: result.error });
     }
 
     const payload = req.body as { paymentStatus?: string; currency?: string };
