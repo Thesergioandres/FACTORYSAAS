@@ -1,3 +1,12 @@
+export type BusinessProfile = {
+  slug: string;
+  name: string;
+  phone: string;
+  address: string;
+  logoUrl: string;
+  primaryColor: string;
+};
+
 export interface TenantEntity {
   id: string;
   slug: string;
@@ -26,6 +35,7 @@ export interface TenantEntity {
   email?: string | null;
   phone?: string | null;
   country?: string;
+  businessProfile?: BusinessProfile;
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -56,6 +66,8 @@ export type UpdateTenantInput = Partial<Omit<TenantEntity, 'id' | 'slug'>>;
 export interface TenantsRepository {
   findById(id: string): Promise<TenantEntity | null>;
   findBySlug(slug: string): Promise<TenantEntity | null>;
+  findByBusinessProfileSlug(slug: string): Promise<TenantEntity | null>;
+  findByPublicPath(verticalSlug: string, tenantSlug: string): Promise<TenantEntity | null>;
   listAll(): Promise<TenantEntity[]>;
   create(input: CreateTenantInput): Promise<TenantEntity>;
   update(id: string, input: UpdateTenantInput): Promise<TenantEntity | null>;

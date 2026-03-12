@@ -9,6 +9,14 @@ type TenantProps = {
   email?: string | null;
   phone?: string | null;
   country?: string;
+  businessProfile?: {
+    slug: string;
+    name: string;
+    phone: string;
+    address: string;
+    logoUrl: string;
+    primaryColor: string;
+  };
   subdomain: string;
   verticalSlug: string;
   activeModules: string[];
@@ -62,6 +70,14 @@ export class Tenant {
   email?: string | null;
   phone?: string | null;
   country?: string;
+  businessProfile?: {
+    slug: string;
+    name: string;
+    phone: string;
+    address: string;
+    logoUrl: string;
+    primaryColor: string;
+  };
   subdomain: string;
   verticalSlug: string;
   activeModules: string[];
@@ -112,6 +128,7 @@ export class Tenant {
     this.email = props.email ?? null;
     this.phone = props.phone ?? null;
     this.country = props.country;
+    this.businessProfile = props.businessProfile;
     this.subdomain = props.subdomain;
     this.verticalSlug = props.verticalSlug;
     this.activeModules = props.activeModules;

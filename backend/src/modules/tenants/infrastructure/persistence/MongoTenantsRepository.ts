@@ -25,6 +25,14 @@ function mapTenant(document: {
   email?: string | null;
   phone?: string | null;
   country?: string | null;
+  businessProfile?: {
+    slug: string;
+    name: string;
+    phone: string;
+    address: string;
+    logoUrl: string;
+    primaryColor: string;
+  };
   customColors?: { primary?: string; secondary?: string };
   logoUrl?: string | null;
   config: TenantEntity['config'];
@@ -60,6 +68,7 @@ function mapTenant(document: {
     email: document.email ?? null,
     phone: document.phone ?? null,
     country: document.country ?? undefined,
+    businessProfile: document.businessProfile,
     customColors: document.customColors,
     logoUrl: document.logoUrl ?? null,
     config: document.config,
@@ -77,6 +86,23 @@ export class MongoTenantsRepository implements TenantsRepository {
 
   async findBySlug(slug: string) {
     const doc = await TenantModel.findOne({ $or: [{ slug }, { subdomain: slug }] }).lean();
+    if (!doc) return null;
+    const plan = await PlanModel.findById(doc.planId).lean();
+    return mapTenant(doc as typeof doc & { _id: { toString(): string } }, plan?.name);
+  }
+
+  async findByBusinessProfileSlug(slug: string) {
+    const doc = await TenantModel.findOne({ 'businessProfile.slug': slug.toLowerCase() }).lean();
+    if (!doc) return null;
+    const plan = await PlanModel.findById(doc.planId).lean();
+    return mapTenant(doc as typeof doc & { _id: { toString(): string } }, plan?.name);
+  }
+
+  async findByPublicPath(verticalSlug: string, tenantSlug: string) {
+    const doc = await TenantModel.findOne({
+      verticalSlug,
+      'businessProfile.slug': tenantSlug.toLowerCase()
+    }).lean();
     if (!doc) return null;
     const plan = await PlanModel.findById(doc.planId).lean();
     return mapTenant(doc as typeof doc & { _id: { toString(): string } }, plan?.name);

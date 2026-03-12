@@ -26,6 +26,14 @@ type TenantDocument = {
   email?: string | null;
   phone?: string | null;
   country?: string;
+  businessProfile?: {
+    slug: string;
+    name: string;
+    phone: string;
+    address: string;
+    logoUrl: string;
+    primaryColor: string;
+  };
   customColors?: {
     primary?: string;
     secondary?: string;
@@ -90,6 +98,14 @@ const tenantSchema = new mongoose.Schema<TenantDocument>(
     email: { type: String, default: null },
     phone: { type: String, default: null },
     country: { type: String, default: null },
+    businessProfile: {
+      slug: { type: String, trim: true, lowercase: true, unique: true, sparse: true, index: true },
+      name: { type: String, trim: true },
+      phone: { type: String, trim: true },
+      address: { type: String, trim: true },
+      logoUrl: { type: String, trim: true },
+      primaryColor: { type: String, trim: true }
+    },
     customColors: {
       primary: { type: String, default: '#f59e0b' },
       secondary: { type: String, default: '#facc15' }

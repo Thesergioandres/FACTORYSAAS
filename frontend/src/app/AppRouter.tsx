@@ -77,6 +77,12 @@ const OnboardingPendingPage = lazy(() => import('../modules/admin/presentation/p
 const CreateTenantPage = lazy(() => import('../modules/onboarding/CreateTenantPage').then((mod) => ({
   default: mod.CreateTenantPage
 })));
+const OnboardingWizard = lazy(() => import('../modules/onboarding/OnboardingWizard').then((mod) => ({
+  default: mod.OnboardingWizard
+})));
+const PublicTenantLanding = lazy(() => import('../modules/landing/PublicTenantLanding').then((mod) => ({
+  default: mod.PublicTenantLanding
+})));
 const TermsAndConditions = lazy(() => import('../modules/legal/pages/TermsAndConditions').then((mod) => ({
   default: mod.TermsAndConditions
 })));
@@ -247,6 +253,11 @@ export function AppRouter() {
           </Suspense>
         } />
         <Route path="/onboarding" element={
+          <Suspense fallback={<RouteLoader />}>
+            <OnboardingWizard />
+          </Suspense>
+        } />
+        <Route path="/onboarding/create" element={
           <Suspense fallback={<RouteLoader />}>
             <CreateTenantPage />
           </Suspense>
@@ -455,7 +466,17 @@ export function AppRouter() {
         } />
         <Route path="/onboarding" element={
           <Suspense fallback={<RouteLoader />}>
+            <OnboardingWizard />
+          </Suspense>
+        } />
+        <Route path="/onboarding/create" element={
+          <Suspense fallback={<RouteLoader />}>
             <CreateTenantPage />
+          </Suspense>
+        } />
+        <Route path="/:verticalSlug/:tenantSlug" element={
+          <Suspense fallback={<RouteLoader />}>
+            <PublicTenantLanding />
           </Suspense>
         } />
         <Route path="/legal/terms" element={

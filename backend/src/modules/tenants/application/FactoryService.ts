@@ -99,6 +99,14 @@ export class FactoryService {
       status: 'onboarding',
       email: adminEmail,
       phone: adminPhone,
+      businessProfile: {
+        slug,
+        name: tenantName,
+        phone: adminPhone,
+        address: input.branchAddress?.trim() || 'Pendiente',
+        logoUrl: input.logoUrl || '',
+        primaryColor: input.customColors?.primary || DEFAULT_COLORS.primary
+      },
       validUntil: null,
       createdAt: new Date().toISOString(),
       customColors: input.customColors || DEFAULT_COLORS,

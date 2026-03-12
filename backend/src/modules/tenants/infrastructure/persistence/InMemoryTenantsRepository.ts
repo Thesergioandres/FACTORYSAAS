@@ -6,6 +6,7 @@ function mapTenant(tenant: TenantEntity): TenantEntity {
   return {
     ...tenant,
     legalConsent: tenant.legalConsent ? { ...tenant.legalConsent } : undefined,
+    businessProfile: tenant.businessProfile ? { ...tenant.businessProfile } : undefined,
     customColors: tenant.customColors ? { ...tenant.customColors } : undefined,
     businessHours: tenant.businessHours ? tenant.businessHours.map((entry) => ({ ...entry })) : undefined,
     config: {
@@ -29,6 +30,20 @@ export class InMemoryTenantsRepository implements TenantsRepository {
 
   async findBySlug(slug: string) {
     const tenant = database.tenants.find((item) => item.slug === slug || item.subdomain === slug);
+    return tenant ? mapTenant(tenant) : null;
+  }
+
+  async findByBusinessProfileSlug(slug: string) {
+    const normalizedSlug = slug.toLowerCase();
+    const tenant = database.tenants.find((item) => item.businessProfile?.slug === normalizedSlug);
+    return tenant ? mapTenant(tenant) : null;
+  }
+
+  async findByPublicPath(verticalSlug: string, tenantSlug: string) {
+    const normalizedSlug = tenantSlug.toLowerCase();
+    const tenant = database.tenants.find(
+      (item) => item.verticalSlug === verticalSlug && item.businessProfile?.slug === normalizedSlug
+    );
     return tenant ? mapTenant(tenant) : null;
   }
 
@@ -61,6 +76,7 @@ export class InMemoryTenantsRepository implements TenantsRepository {
     if (input.email !== undefined) tenant.email = input.email;
     if (input.phone !== undefined) tenant.phone = input.phone;
     if (input.country !== undefined) tenant.country = input.country;
+    if (input.businessProfile !== undefined) tenant.businessProfile = { ...input.businessProfile };
     if (input.validUntil !== undefined) tenant.validUntil = input.validUntil;
     if (input.customColors !== undefined) tenant.customColors = { ...input.customColors };
     if (input.logoUrl !== undefined) tenant.logoUrl = input.logoUrl;

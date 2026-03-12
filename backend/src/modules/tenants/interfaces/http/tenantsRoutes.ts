@@ -16,6 +16,7 @@ import type { TenantsRepository } from '../../application/ports/TenantsRepositor
 import type { authenticateJwt } from '../../../../shared/interfaces/http/middlewares/authenticateJwt';
 import type { requireRoles } from '../../../../shared/interfaces/http/middlewares/requireRoles';
 import { TenantStatus } from '../../domain/enums/TenantEnums';
+import { UpdateBusinessProfileUseCase } from '../../application/use-cases/UpdateBusinessProfileUseCase';
 
 export function createTenantsRoutes(deps: { 
   tenantsRepository: TenantsRepository;
@@ -23,6 +24,7 @@ export function createTenantsRoutes(deps: {
   requireRoles: typeof requireRoles;
 }) {
   const router = Router();
+  const updateBusinessProfileUseCase = new UpdateBusinessProfileUseCase(deps.tenantsRepository);
 
   const deleteTenantCascade = async (tenantId: string) => {
     if (mongoose.connection.readyState === 1) {
@@ -233,6 +235,7 @@ export function createTenantsRoutes(deps: {
       id: tenant.id,
       name: tenant.name,
       slug: tenant.slug,
+      businessProfile: tenant.businessProfile,
       subdomain: tenant.subdomain,
       email: tenant.email,
       phone: tenant.phone,
@@ -243,6 +246,55 @@ export function createTenantsRoutes(deps: {
       logoUrl: tenant.logoUrl,
       status: tenant.status
     });
+  });
+
+  router.get('/public/:verticalSlug/:tenantSlug', async (req: Request, res: Response) => {
+    const tenant = await deps.tenantsRepository.findByPublicPath(req.params.verticalSlug, req.params.tenantSlug);
+    if (!tenant || !tenant.businessProfile) {
+      return res.status(404).json({ message: 'Tenant no encontrado' });
+    }
+
+    return res.json({
+      id: tenant.id,
+      verticalSlug: tenant.verticalSlug,
+      businessProfile: tenant.businessProfile
+    });
+  });
+
+  router.put('/:id/profile', deps.authenticateJwt, deps.requireRoles('ADMIN', 'OWNER', 'GOD'), async (req: Request, res: Response) => {
+    const requester = req.auth;
+    if (!requester) {
+      return res.status(403).json({ message: 'No autorizado' });
+    }
+
+    if (requester.role !== 'GOD' && requester.tenantId !== req.params.id) {
+      return res.status(403).json({ message: 'No autorizado para este tenant' });
+    }
+
+    const { slug, name, phone, address, logoUrl, primaryColor } = req.body as {
+      slug?: string;
+      name?: string;
+      phone?: string;
+      address?: string;
+      logoUrl?: string;
+      primaryColor?: string;
+    };
+
+    const result = await updateBusinessProfileUseCase.execute({
+      tenantId: req.params.id,
+      slug: slug || '',
+      name: name || '',
+      phone: phone || '',
+      address: address || '',
+      logoUrl: logoUrl || '',
+      primaryColor: primaryColor || ''
+    });
+
+    if ('error' in result) {
+      return res.status(result.statusCode).json({ message: result.error });
+    }
+
+    return res.json(result.tenant);
   });
 
   router.get('/:id', async (req: Request, res: Response) => {

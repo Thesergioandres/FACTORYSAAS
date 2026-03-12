@@ -39,6 +39,10 @@ export type Env = {
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const defaultEnableJobs = nodeEnv === 'production' ? 'true' : 'false';
+const defaultFrontendOrigin = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((item: string) => item.trim())
+  .filter(Boolean)[0] || 'http://localhost:5173';
 
 export const env: Env = {
   nodeEnv,
@@ -71,8 +75,8 @@ export const env: Env = {
   vapidSubject: process.env.VAPID_SUBJECT,
   mercadoPagoAccessToken: process.env.MP_ACCESS_TOKEN,
   mercadoPagoWebhookUrl: process.env.MP_WEBHOOK_URL,
-  mercadoPagoSuccessUrl: process.env.MP_SUCCESS_URL,
-  mercadoPagoFailureUrl: process.env.MP_FAILURE_URL,
-  mercadoPagoPendingUrl: process.env.MP_PENDING_URL,
+  mercadoPagoSuccessUrl: process.env.MP_SUCCESS_URL || `${defaultFrontendOrigin}/onboarding`,
+  mercadoPagoFailureUrl: process.env.MP_FAILURE_URL || `${defaultFrontendOrigin}/onboarding-pending`,
+  mercadoPagoPendingUrl: process.env.MP_PENDING_URL || `${defaultFrontendOrigin}/onboarding-pending`,
   mercadoPagoCurrency: process.env.MP_CURRENCY || 'COP'
 };

@@ -60,6 +60,14 @@ type Tenant = {
   email?: string | null;
   phone?: string | null;
   country?: string;
+  businessProfile?: {
+    slug: string;
+    name: string;
+    phone: string;
+    address: string;
+    logoUrl: string;
+    primaryColor: string;
+  };
   validUntil?: string | null;
   createdAt: string;
   customColors?: {
@@ -230,6 +238,14 @@ export const database: {
       email: 'admin@factorysaas.com',
       phone: '+573000000001',
       country: 'CO',
+      businessProfile: {
+        slug: 'essence',
+        name: 'Essence Factory',
+        phone: '+573000000001',
+        address: 'Bogota, Colombia',
+        logoUrl: '',
+        primaryColor: '#f59e0b'
+      },
       validUntil: null,
       createdAt: new Date().toISOString(),
       legalConsent: {
