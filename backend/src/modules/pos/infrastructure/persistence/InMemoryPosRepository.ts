@@ -12,7 +12,7 @@ export class InMemoryPosRepository implements PosRepository {
     return this.sales.find((sale) => sale.tenantId === tenantId && sale.id === id) || null;
   }
 
-  async createSale(input: CreatePosSaleInput) {
+  async createSale(input: CreatePosSaleInput, options?: { session?: any }) {
     const total = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const sale: PosSale = {
       id: randomUUID(),

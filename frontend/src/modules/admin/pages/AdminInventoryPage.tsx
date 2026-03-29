@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { apiRequest } from '../../../shared/infrastructure/http/apiClient';
 
@@ -22,7 +23,7 @@ type InventoryRowData = {
   onToggle: (item: InventoryItem) => void;
 };
 
-function InventoryRow({ index, style, data }: ListChildComponentProps<InventoryRowData>) {
+function InventoryRow({ index, style, data }: ListChildComponentProps<InventoryRowData & { isOwner: boolean }>) {
   const item = data.items[index];
   return (
     <div style={style} className="px-1">
@@ -38,12 +39,16 @@ function InventoryRow({ index, style, data }: ListChildComponentProps<InventoryR
             Stock: {item.stock}
           </p>
           <div className="mt-2 flex items-center justify-end gap-2">
-            <button className="btn-ghost" type="button" onClick={() => data.onEdit(item)}>
-              Editar
-            </button>
-            <button className="btn-ghost" type="button" onClick={() => data.onToggle(item)}>
-              {item.active ? 'Desactivar' : 'Activar'}
-            </button>
+            {data.isOwner && (
+              <>
+                <button className="btn-ghost" type="button" onClick={() => data.onEdit(item)}>
+                  Editar
+                </button>
+                <button className="btn-ghost" type="button" onClick={() => data.onToggle(item)}>
+                  {item.active ? 'Desactivar' : 'Activar'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -62,6 +67,8 @@ const emptyForm = {
 };
 
 export function AdminInventoryPage() {
+  const { user } = useAuth();
+  const isOwner = user?.role === 'ADMIN' || user?.role === 'GOD' || user?.role === 'OWNER';
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -194,9 +201,11 @@ export function AdminInventoryPage() {
             <h2 className="section-title">Panel de inventario</h2>
             <p className="section-subtitle">Controla productos, stock y precios.</p>
           </div>
-          <button className="btn-primary" type="button" onClick={openCreate}>
-            Nuevo producto
-          </button>
+          {isOwner && (
+            <button className="btn-primary" type="button" onClick={openCreate}>
+              Nuevo producto
+            </button>
+          )}
         </div>
       </header>
 
@@ -238,14 +247,16 @@ export function AdminInventoryPage() {
                   <p className={`text-xs ${item.stock <= LOW_STOCK_THRESHOLD ? 'text-secondary' : 'text-muted'}`}>
                     Stock: {item.stock}
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
-                      Editar
-                    </button>
-                    <button className="btn-ghost" type="button" onClick={() => toggleItem(item)}>
-                      {item.active ? 'Desactivar' : 'Activar'}
-                    </button>
-                  </div>
+                  {isOwner && (
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
+                        Editar
+                      </button>
+                      <button className="btn-ghost" type="button" onClick={() => toggleItem(item)}>
+                        {item.active ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             ) : shouldVirtualize ? (
@@ -254,7 +265,7 @@ export function AdminInventoryPage() {
                 itemCount={inventoryItems.length}
                 itemSize={120}
                 width="100%"
-                itemData={{ items: inventoryItems, onEdit: openEdit, onToggle: toggleItem }}
+                itemData={{ items: inventoryItems, onEdit: openEdit, onToggle: toggleItem, isOwner }}
               >
                 {InventoryRow}
               </FixedSizeList>
@@ -271,14 +282,16 @@ export function AdminInventoryPage() {
                     <p className={`text-xs ${item.stock <= LOW_STOCK_THRESHOLD ? 'text-secondary' : 'text-muted'}`}>
                       Stock: {item.stock}
                     </p>
-                    <div className="mt-2 flex items-center justify-end gap-2">
-                      <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
-                        Editar
-                      </button>
-                      <button className="btn-ghost" type="button" onClick={() => toggleItem(item)}>
-                        {item.active ? 'Desactivar' : 'Activar'}
-                      </button>
-                    </div>
+                    {isOwner && (
+                      <div className="mt-2 flex items-center justify-end gap-2">
+                        <button className="btn-ghost" type="button" onClick={() => openEdit(item)}>
+                          Editar
+                        </button>
+                        <button className="btn-ghost" type="button" onClick={() => toggleItem(item)}>
+                          {item.active ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

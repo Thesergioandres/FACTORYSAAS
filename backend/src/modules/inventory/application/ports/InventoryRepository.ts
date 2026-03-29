@@ -34,6 +34,8 @@ export interface InventoryRepository {
   create(input: CreateProductInput): Promise<ProductRecord>;
   update(id: string, input: UpdateProductInput): Promise<ProductRecord | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
-  decrementStock(tenantId: string, id: string, quantity: number): Promise<ProductRecord | null>;
+  decrementStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<ProductRecord | null>;
+  restoreStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<boolean>;
   recordRestock(tenantId: string, input: RestockInput): Promise<ProductRecord | null>;
+  assignToSeller(tenantId: string, sellerId: string, productId: string, quantity: number): Promise<boolean>;
 }

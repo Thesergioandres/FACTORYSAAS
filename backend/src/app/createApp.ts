@@ -44,6 +44,7 @@ import { createUploadRoutes } from '../routes/upload';
 import { createOrdersRoutes } from '../routes/orders';
 import { createOrdersStreamRoutes } from '../routes/ordersStream';
 import { healthRouter } from '../routes/health';
+import { createGodRoutes } from '../routes/godRoutes';
 import type { Env } from '../config/env';
 import type { Logger } from 'pino';
 
@@ -118,6 +119,11 @@ export function createApp({
     usersRepository,
     defaultConfig: {
       ...database.appConfig,
+      features: {
+        erp_retail: true,
+        gamification: false,
+        credits: false
+      },
       bufferTimeMinutes: 10,
       requirePaymentForNoShows: false,
       maxNoShowsBeforePayment: 3
@@ -156,16 +162,6 @@ export function createApp({
     requireApproved: requireApproved(),
     requireRoles
   });
-  const { reportsRoutes } = createReportsModule({
-    usersRepository,
-    servicesRepository,
-    appointmentsRepository,
-    inventoryRepository,
-    authenticateJwt: authMiddleware,
-    requireRoles
-  });
-  const { authRoutes } = createAuthModule({ env, usersRepository, tenantsRepository });
-
   const { billingRoutes, createInvoiceUseCase } = createBillingModule({
     useMongo: persistence.useMongo,
     tenantsRepository,
@@ -173,17 +169,29 @@ export function createApp({
     requireRoles
   });
 
-  const { contentRoutes } = createContentModule();
-
-  const { posRoutes } = createPosModule({
+  const { posRoutes, posRepository } = createPosModule({
     useMongo: persistence.useMongo,
     appointmentsRepository,
     servicesRepository,
     usersRepository,
+    inventoryRepository,
     createInvoiceUseCase,
     authenticateJwt: authMiddleware,
     requireRoles
   });
+
+  const { reportsRoutes } = createReportsModule({
+    usersRepository,
+    servicesRepository,
+    appointmentsRepository,
+    inventoryRepository,
+    posRepository,
+    authenticateJwt: authMiddleware,
+    requireRoles
+  });
+
+  const { authRoutes } = createAuthModule({ env, usersRepository, tenantsRepository });
+  const { contentRoutes } = createContentModule();
 
   const { tablesRoutes } = createTablesModule({
     useMongo: persistence.useMongo,
@@ -234,6 +242,8 @@ export function createApp({
     authenticateJwt: authMiddleware,
     requireRoles
   });
+
+  const godRoutes = createGodRoutes();
 
   app.use(helmet());
   app.use(compression());
@@ -311,6 +321,7 @@ export function createApp({
   app.use('/api/upload', uploadRoutes);
   app.use('/api/orders', ordersRoutes);
   app.use('/api/orders', ordersStreamRoutes);
+  app.use('/api/god', godRoutes);
 
   const publicDir = path.join(process.cwd(), 'public');
   if (env.nodeEnv === 'production' && fs.existsSync(publicDir)) {

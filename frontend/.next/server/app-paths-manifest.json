@@ -1,0 +1,9 @@
+{
+  "/erp/register/page": "app/erp/register/page.js",
+  "/erp/login/page": "app/erp/login/page.js",
+  "/[tenantSlug]/page": "app/[tenantSlug]/page.js",
+  "/god-panel/page": "app/god-panel/page.js",
+  "/admin-login/page": "app/admin-login/page.js",
+  "/dashboard/inventory/page": "app/dashboard/inventory/page.js",
+  "/dashboard/pos/page": "app/dashboard/pos/page.js"
+}

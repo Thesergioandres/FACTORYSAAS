@@ -42,6 +42,11 @@ type TenantDocument = {
   status: TenantStatus;
   validUntil?: Date | null;
   config: {
+    features: {
+      erp_retail: boolean;
+      gamification: boolean;
+      credits: boolean;
+    };
     bufferTimeMinutes: number;
     requirePaymentForNoShows: boolean;
     maxNoShowsBeforePayment: number;
@@ -119,6 +124,11 @@ const tenantSchema = new mongoose.Schema<TenantDocument>(
     },
     validUntil: { type: Date, default: null },
     config: {
+      features: {
+        erp_retail: { type: Boolean, default: true },
+        gamification: { type: Boolean, default: false },
+        credits: { type: Boolean, default: false }
+      },
       bufferTimeMinutes: { type: Number, default: 10 },
       requirePaymentForNoShows: { type: Boolean, default: false },
       maxNoShowsBeforePayment: { type: Number, default: 3 },

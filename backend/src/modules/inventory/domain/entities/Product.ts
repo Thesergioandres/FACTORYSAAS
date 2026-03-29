@@ -7,6 +7,7 @@ export type ProductRecord = {
   description?: string;
   price: number;
   stock: number;
+  warehouseStock?: number;
   imageUrl?: string;
   active: boolean;
   lastCost?: number;

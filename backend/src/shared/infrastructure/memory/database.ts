@@ -76,6 +76,11 @@ type Tenant = {
   };
   logoUrl?: string | null;
   config: AppConfig & {
+    features: {
+      erp_retail: boolean;
+      gamification: boolean;
+      credits: boolean;
+    };
     bufferTimeMinutes: number;
     requirePaymentForNoShows: boolean;
     maxNoShowsBeforePayment: number;
@@ -113,6 +118,7 @@ type Product = {
   stock: number;
   imageUrl?: string;
   active: boolean;
+  warehouseStock?: number;
   lastCost?: number;
   averageCost?: number;
   totalPurchaseUnits?: number;
@@ -263,6 +269,11 @@ export const database: {
       },
       logoUrl: null,
       config: {
+        features: {
+          erp_retail: true,
+          gamification: false,
+          credits: false
+        },
         minAdvanceMinutes: 60,
         cancelLimitMinutes: 120,
         rescheduleLimitMinutes: 120,

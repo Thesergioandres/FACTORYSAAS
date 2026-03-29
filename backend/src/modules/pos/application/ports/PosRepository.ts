@@ -17,13 +17,15 @@ export type PosSale = {
 
 export type CreatePosSaleInput = {
   tenantId: string;
+  sellerId?: string;
   tableId?: string;
   items: PosSaleItem[];
   paymentMethod?: string;
+  paymentStatus?: 'confirmado' | 'pendiente';
 };
 
 export interface PosRepository {
   listSales(tenantId: string): Promise<PosSale[]>;
   findById(tenantId: string, id: string): Promise<PosSale | null>;
-  createSale(input: CreatePosSaleInput): Promise<PosSale>;
+  createSale(input: CreatePosSaleInput, options?: { session?: any }): Promise<PosSale>;
 }

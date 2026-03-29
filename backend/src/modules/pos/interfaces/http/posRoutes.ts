@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import type { CreateSaleUseCase } from '../../application/use-cases/createSaleUseCase';
+import type { RegisterSaleUseCase } from '../../application/use-cases/RegisterSaleUseCase';
 import type { PosRepository } from '../../application/ports/PosRepository';
 import type { AppointmentsRepository } from '../../../appointments/application/ports/AppointmentsRepository';
 import type { ServicesRepository } from '../../../services/application/ports/ServicesRepository';
@@ -10,7 +10,7 @@ import type { requireRoles } from '../../../../shared/interfaces/http/middleware
 
 export function createPosRoutes({
   posRepository,
-  createSaleUseCase,
+  registerSaleUseCase,
   appointmentsRepository,
   servicesRepository,
   usersRepository,
@@ -19,7 +19,7 @@ export function createPosRoutes({
   requireRoles: requireRolesMiddleware
 }: {
   posRepository: PosRepository;
-  createSaleUseCase: CreateSaleUseCase;
+  registerSaleUseCase: RegisterSaleUseCase;
   appointmentsRepository: AppointmentsRepository;
   servicesRepository: ServicesRepository;
   usersRepository: UsersRepository;
@@ -38,28 +38,38 @@ export function createPosRoutes({
 
   router.get('/sales', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
-    const sales = await posRepository.listSales(tenantId);
+    const sales = await posRepository.listSales(tenantId || '');
     return res.json(sales);
   });
 
   router.get('/sales/:id', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
-    const sale = await posRepository.findById(tenantId, req.params.id);
+    const sale = await posRepository.findById(tenantId || '', req.params.id);
     if (!sale) return res.status(404).json({ message: 'Venta no encontrada' });
 
     return res.json(sale);
   });
 
-  router.post('/sales', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
+  router.post('/sales', authMiddleware, async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    const sellerId = req.auth?.sub; 
 
-    const result = await createSaleUseCase.execute({
-      tenantId,
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
+
+    const result = await registerSaleUseCase.execute({
+      tenantId: tenantId || '',
+      sellerId,
+      role,
       items: (req.body as { items?: Array<{ productId: string; name: string; quantity: number; price: number }> })?.items || [],
       paymentMethod: (req.body as { paymentMethod?: string })?.paymentMethod,
       tableId: (req.body as { tableId?: string })?.tableId
@@ -77,7 +87,7 @@ export function createPosRoutes({
 
     if (paymentStatus === 'PAGADA' && createInvoiceUseCase) {
       const invoiceResult = await createInvoiceUseCase.execute({
-        tenantId,
+        tenantId: tenantId || '',
         subtotal: result.sale.total,
         currency
       });
@@ -93,7 +103,9 @@ export function createPosRoutes({
 
   router.get('/close', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
     const startParam = typeof req.query.start === 'string' ? req.query.start : undefined;
     const endParam = typeof req.query.end === 'string' ? req.query.end : undefined;
@@ -117,10 +129,10 @@ export function createPosRoutes({
     }
 
     const [sales, appointments, services, staff] = await Promise.all([
-      posRepository.listSales(tenantId),
-      appointmentsRepository.list(tenantId, { startFrom: start, startTo: end }),
-      servicesRepository.list(tenantId),
-      usersRepository.list(tenantId, 'STAFF')
+      posRepository.listSales(tenantId || ''),
+      appointmentsRepository.list(tenantId || '', { startFrom: start, startTo: end }),
+      servicesRepository.list(tenantId || ''),
+      usersRepository.list(tenantId || '', 'STAFF')
     ]);
 
     const salesInRange = sales.filter((sale) => {

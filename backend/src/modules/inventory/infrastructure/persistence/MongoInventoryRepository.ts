@@ -1,4 +1,6 @@
+import mongoose from 'mongoose';
 import { ProductModel } from '../../../../shared/infrastructure/mongoose/models/ProductModel';
+import { SellerStockModel } from '../../../../shared/infrastructure/mongoose/models/SellerStockModel';
 import type { InventoryRepository, CreateProductInput, UpdateProductInput } from '../../application/ports/InventoryRepository';
 import type { ProductRecord } from '../../domain/entities/Product';
 
@@ -11,6 +13,7 @@ type ProductDoc = {
   description?: string;
   price: number;
   stock: number;
+  warehouseStock?: number;
   imageUrl?: string;
   active: boolean;
   lastCost?: number;
@@ -42,6 +45,7 @@ function mapProduct(document: ProductDoc): ProductRecord | null {
     description: document.description,
     price: document.price,
     stock: document.stock,
+    warehouseStock: document.warehouseStock ?? document.stock,
     imageUrl: document.imageUrl || undefined,
     active: document.active,
     lastCost: document.lastCost,
@@ -87,6 +91,7 @@ export class MongoInventoryRepository implements InventoryRepository {
       description: payload.description || '',
       price: Number(payload.price),
       stock: Number(payload.stock),
+      warehouseStock: Number(payload.stock),
       imageUrl: payload.imageUrl || '',
       active: payload.active ?? true,
       lastCost: 0,
@@ -120,14 +125,47 @@ export class MongoInventoryRepository implements InventoryRepository {
     return result.deletedCount === 1;
   }
 
-  async decrementStock(tenantId: string, id: string, quantity: number): Promise<ProductRecord | null> {
-    const doc = await ProductModel.findOneAndUpdate(
-      { _id: id, tenantId, stock: { $gte: quantity } },
-      { $inc: { stock: -Math.abs(quantity) } },
-      { new: true }
-    ).lean<ProductDoc>();
+  async decrementStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<ProductRecord | null> {
+    const opts = options?.session ? { new: true, session: options.session } : { new: true };
+    if (sellerId) {
+      const distStock = await SellerStockModel.findOneAndUpdate(
+        { tenantId, sellerId, productId: id, quantity: { $gte: quantity } },
+        { $inc: { quantity: -Math.abs(quantity) } },
+        opts
+      ).lean();
+      
+      if (!distStock) return null;
+      
+      const doc = await ProductModel.findOne({ _id: id, tenantId }, null, { session: options?.session }).lean<ProductDoc>();
+      return mapProduct(doc);
+    } else {
+      const doc = await ProductModel.findOneAndUpdate(
+        { _id: id, tenantId, warehouseStock: { $gte: quantity } },
+        { $inc: { warehouseStock: -Math.abs(quantity) } },
+        opts
+      ).lean<ProductDoc>();
 
-    return mapProduct(doc);
+      return mapProduct(doc);
+    }
+  }
+
+  async restoreStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<boolean> {
+    const opts = options?.session ? { session: options.session } : undefined;
+    if (sellerId) {
+      await SellerStockModel.findOneAndUpdate(
+        { tenantId, sellerId, productId: id },
+        { $inc: { quantity: Math.abs(quantity) } },
+        opts
+      );
+      return true;
+    } else {
+      await ProductModel.findOneAndUpdate(
+        { _id: id, tenantId },
+        { $inc: { warehouseStock: Math.abs(quantity) } },
+        opts
+      );
+      return true;
+    }
   }
 
   async recordRestock(tenantId: string, input: { productId: string; quantity: number; unitCost: number; supplier?: string; arrivedAt?: string; }): Promise<ProductRecord | null> {
@@ -169,5 +207,35 @@ export class MongoInventoryRepository implements InventoryRepository {
     ).lean<ProductDoc>();
 
     return mapProduct(doc);
+  }
+
+  async assignToSeller(tenantId: string, sellerId: string, productId: string, quantity: number): Promise<boolean> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const product = await ProductModel.findOneAndUpdate(
+        { _id: productId, tenantId, warehouseStock: { $gte: quantity } },
+        { $inc: { warehouseStock: -Math.abs(quantity) } },
+        { session, new: true }
+      ).lean();
+
+      if (!product) {
+        throw new Error('Stock insuficiente en warehouse o producto no encontrado.');
+      }
+
+      await SellerStockModel.findOneAndUpdate(
+        { tenantId, sellerId, productId },
+        { $inc: { quantity: Math.abs(quantity) } },
+        { session, upsert: true, new: true }
+      );
+
+      await session.commitTransaction();
+      return true;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      await session.endSession();
+    }
   }
 }

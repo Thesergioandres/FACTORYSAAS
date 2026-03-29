@@ -8,6 +8,7 @@ type ProductDocument = {
   description?: string;
   price: number;
   stock: number;
+  warehouseStock?: number;
   imageUrl?: string;
   active: boolean;
   lastCost?: number;
@@ -35,6 +36,7 @@ const productSchema = new mongoose.Schema<ProductDocument>(
     description: { type: String, default: '' },
     price: { type: Number, required: true },
     stock: { type: Number, required: true },
+    warehouseStock: { type: Number, default: 0 },
     imageUrl: { type: String, default: '' },
     active: { type: Boolean, default: true },
     lastCost: { type: Number, default: 0 },

@@ -31,17 +31,47 @@ export function createInventoryRoutes({
     res.json(items);
   });
 
-  router.get('/', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
-    const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+  const sanitizeProductForSeller = (product: any, role: string) => {
+    if (role === 'SELLER') {
+      const sanitized = { ...product };
+      delete sanitized.lastCost;
+      delete sanitized.averageCost;
+      delete sanitized.totalPurchaseUnits;
+      delete sanitized.totalPurchaseCost;
+      delete sanitized.restocks;
+      return sanitized;
+    }
+    return product;
+  };
 
-    const items = await inventoryRepository.list(tenantId);
-    res.json(items);
+  router.get('/', authMiddleware, requireRolesMiddleware('ADMIN', 'SELLER'), async (req: Request, res: Response) => {
+    const tenantId = req.auth?.tenantId;
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
+
+    const items = await inventoryRepository.list(tenantId || '');
+    const sanitizedItems = items.map(item => sanitizeProductForSeller(item, role));
+    res.json(sanitizedItems);
+  });
+
+  router.get('/:id', authMiddleware, requireRolesMiddleware('ADMIN', 'SELLER'), async (req: Request, res: Response) => {
+    const tenantId = req.auth?.tenantId;
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
+
+    const item = await inventoryRepository.findById(req.params.id, tenantId || '');
+    if (!item) return res.status(404).json({ message: 'Producto no encontrado' });
+
+    res.json(sanitizeProductForSeller(item, role));
   });
 
   router.post('/', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
     const result = await createProductUseCase.execute({
       ...(req.body || {}),
@@ -78,7 +108,9 @@ export function createInventoryRoutes({
 
   router.post('/sales', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
     const result = await recordSaleUseCase.execute({
       tenantId,
@@ -94,7 +126,9 @@ export function createInventoryRoutes({
 
   router.post('/restock', authMiddleware, requireRolesMiddleware('ADMIN'), async (req: Request, res: Response) => {
     const tenantId = req.auth?.tenantId;
-    if (!tenantId) return res.status(403).json({ message: 'No tenantId' });
+    const role = req.auth?.role;
+    if (!role) return res.status(401).json({ message: 'No role' });
+    if (!tenantId && role !== 'GOD') return res.status(403).json({ message: 'No tenantId' });
 
     const result = await recordRestockUseCase.execute({
       tenantId,

@@ -7,7 +7,7 @@ export class RecordSaleUseCase {
     return { error: message, statusCode };
   }
 
-  async execute({ tenantId, items }: { tenantId?: string; items?: SaleItemInput[] }): Promise<{ products: Array<{ id: string; stock: number }>; total: number } | { error: string; statusCode: number }> {
+  async execute({ tenantId, sellerId, items }: { tenantId?: string; sellerId?: string; items?: SaleItemInput[] }): Promise<{ products: Array<{ id: string; stock: number }>; total: number } | { error: string; statusCode: number }> {
     if (!tenantId) {
       return this.error('tenantId es requerido', 400);
     }
@@ -32,7 +32,8 @@ export class RecordSaleUseCase {
         return this.error(`Stock insuficiente para ${product.name}`, 409);
       }
 
-      const updatedProduct = await this.deps.inventoryRepository.decrementStock(tenantId, item.productId, item.quantity);
+      // Notice we check stock logic depending on where it comes from, but for simplicity decrementStock throws/returns null.
+      const updatedProduct = await this.deps.inventoryRepository.decrementStock(tenantId, item.productId, item.quantity, sellerId);
       if (!updatedProduct) {
         return this.error('No se pudo actualizar stock', 500);
       }

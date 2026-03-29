@@ -44,6 +44,11 @@ export interface TenantEntity {
   validUntil?: string | null;
   createdAt?: string;
   config: {
+    features: {
+      erp_retail: boolean;
+      gamification: boolean;
+      credits: boolean;
+    };
     bufferTimeMinutes: number;
     requirePaymentForNoShows: boolean;
     maxNoShowsBeforePayment: number;

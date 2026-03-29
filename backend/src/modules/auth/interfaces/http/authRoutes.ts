@@ -11,6 +11,7 @@ export function createAuthRoutes({
 }) {
   const router = Router();
   router.post('/login', authController.login);
+  router.post('/register-tenant', authController.registerTenant);
   router.post('/password/forgot', authController.forgotPassword);
   router.post('/password/reset', authController.resetPassword);
   router.get('/me', authMiddleware, authController.me);

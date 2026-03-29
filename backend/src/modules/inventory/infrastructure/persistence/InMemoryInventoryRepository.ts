@@ -69,13 +69,35 @@ export class InMemoryInventoryRepository implements InventoryRepository {
     return true;
   }
 
-  async decrementStock(tenantId: string, id: string, quantity: number): Promise<ProductRecord | null> {
+  async decrementStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<ProductRecord | null> {
     const product = database.inventory.find((item) => item.id === id && item.tenantId === tenantId);
     if (!product) return null;
+    if (sellerId) {
+       // Mock for seller stock in memory
+       return product;
+    }
     if (product.stock < quantity) return null;
 
     product.stock -= Math.abs(quantity);
+    product.warehouseStock = (product.warehouseStock || 0) - Math.abs(quantity);
     return product;
+  }
+
+  async restoreStock(tenantId: string, id: string, quantity: number, sellerId?: string, options?: { session?: any }): Promise<boolean> {
+    const product = database.inventory.find((item) => item.id === id && item.tenantId === tenantId);
+    if (!product) return false;
+
+    if (!sellerId) {
+      product.warehouseStock = (product.warehouseStock || 0) + Math.abs(quantity);
+    }
+    return true;
+  }
+
+  async assignToSeller(tenantId: string, sellerId: string, productId: string, quantity: number): Promise<boolean> {
+    const product = database.inventory.find((item) => item.id === productId && item.tenantId === tenantId);
+    if (!product) return false;
+    product.warehouseStock = (product.warehouseStock || 0) - quantity;
+    return true;
   }
 
   async recordRestock(tenantId: string, input: { productId: string; quantity: number; unitCost: number; supplier?: string; arrivedAt?: string; }): Promise<ProductRecord | null> {

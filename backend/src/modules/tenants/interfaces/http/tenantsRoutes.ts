@@ -226,6 +226,57 @@ export function createTenantsRoutes(deps: {
     return res.json(usage);
   });
 
+  router.patch('/onboarding', deps.authenticateJwt, deps.requireRoles('ADMIN', 'OWNER'), async (req: Request, res: Response) => {
+    const tenantId = req.auth?.tenantId;
+    if (!tenantId) {
+      return res.status(403).json({ message: 'No autorizado' });
+    }
+
+    const { name, slug, customColors, primaryColor, secondaryColor, logoUrl, address, phone } = req.body as {
+      name?: string;
+      slug?: string;
+      customColors?: { primary?: string; secondary?: string };
+      primaryColor?: string;
+      secondaryColor?: string;
+      logoUrl?: string;
+      address?: string;
+      phone?: string;
+    };
+
+    const colorPayload = customColors || (primaryColor || secondaryColor)
+      ? {
+          primary: primaryColor ?? customColors?.primary,
+          secondary: secondaryColor ?? customColors?.secondary
+        }
+      : undefined;
+
+    // Actualizamos perfil publico
+    if (name || slug || logoUrl || primaryColor || address || phone) {
+      await updateBusinessProfileUseCase.execute({
+        tenantId,
+        slug: slug || '',
+        name: name || '',
+        phone: phone || '',
+        address: address || '',
+        logoUrl: logoUrl || '',
+        primaryColor: colorPayload?.primary || primaryColor || '#000000'
+      });
+    }
+
+    // Actualizamos informacion genérica del tenant
+    const updated = await deps.tenantsRepository.update(tenantId, {
+      ...(slug ? { slug, subdomain: slug } : {}),
+      ...(name ? { name } : {}),
+      ...(colorPayload ? { customColors: colorPayload } : {})
+    });
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Tenant no encontrado' });
+    }
+
+    return res.json({ message: 'Onboarding completado exitosamente', tenant: updated });
+  });
+
   router.get('/slug/:slug', async (req: Request, res: Response) => {
     const tenant = await deps.tenantsRepository.findBySlug(req.params.slug);
     if (!tenant) {

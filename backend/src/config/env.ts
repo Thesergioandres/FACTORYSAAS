@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import type { SignOptions } from 'jsonwebtoken';
+// Trigger reload
 
 dotenv.config();
 
@@ -55,7 +56,7 @@ export const env: Env = {
   trustProxy: (process.env.TRUST_PROXY || 'true') === 'true',
   apiRateLimitWindowMs: Number(process.env.API_RATE_LIMIT_WINDOW_MS || 60000),
   apiRateLimitMax: Number(process.env.API_RATE_LIMIT_MAX || 120),
-  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173')
+  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000,http://localhost:3001')
     .split(',')
     .map((item: string) => item.trim())
     .filter(Boolean),

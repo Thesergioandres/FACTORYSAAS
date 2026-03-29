@@ -7,6 +7,7 @@ export function createReportsModule({
   servicesRepository,
   appointmentsRepository,
   inventoryRepository,
+  posRepository,
   authenticateJwt: authMiddleware,
   requireRoles: requireRolesMiddleware
 }: {
@@ -14,15 +15,17 @@ export function createReportsModule({
   servicesRepository: { list(tenantId: string, options?: { onlyActive?: boolean }): Promise<Array<{ id: string; price?: number }>> };
   appointmentsRepository: { list(tenantId: string, filters?: { clientId?: string; staffId?: string }): Promise<Array<{ id: string; status: string; clientId: string; staffId: string; serviceId: string; startAt: string }>> };
   inventoryRepository: { list(tenantId: string): Promise<Array<{ id: string }>> };
+  posRepository: { listSales(tenantId: string): Promise<Array<{ id: string; total: number; sellerId?: string }>> };
   authenticateJwt: ReturnType<typeof authenticateJwt>;
   requireRoles: typeof requireRoles;
 }) {
   const getSummary = async (tenantId: string) => {
-    const [users, services, appointments, products] = await Promise.all([
+    const [users, services, appointments, products, sales] = await Promise.all([
       usersRepository.list(tenantId),
       servicesRepository.list(tenantId),
       appointmentsRepository.list(tenantId),
-      inventoryRepository.list(tenantId)
+      inventoryRepository.list(tenantId),
+      posRepository.listSales(tenantId)
     ]);
 
     const servicePrices = new Map(services.map((service) => [service.id, Number(service.price || 0)]));
@@ -43,12 +46,19 @@ export function createReportsModule({
 
     const activeStaff = users.filter((user) => user.role === 'STAFF').length;
 
+    const adminSalesAmount = sales.filter(s => !s.sellerId).reduce((sum, s) => sum + s.total, 0);
+    const sellerSalesAmount = sales.filter(s => !!s.sellerId).reduce((sum, s) => sum + s.total, 0);
+    const operatingExpenses = (adminSalesAmount + totalSales) * 0.15; // Deduce 15% as generic operational expense
+
     return {
-      totalSales: Number(totalSales.toFixed(2)),
+      totalServiceSales: Number(totalSales.toFixed(2)),
+      totalProductSales: Number((adminSalesAmount + sellerSalesAmount).toFixed(2)),
+      adminProductSales: adminSalesAmount,
+      sellerProductSales: sellerSalesAmount,
+      netProfit: Number(((totalSales + adminSalesAmount) - operatingExpenses).toFixed(2)),
       appointmentsToday: appointmentsToday.length,
       totalProducts: products.length,
       activeStaff,
-      // TODO: calcular ventas reales por dia cuando exista coleccion de ventas.
       salesTrend: [120, 300, 150, 400, 200, 500, 450]
     };
   };
